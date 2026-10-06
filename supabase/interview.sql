@@ -24,9 +24,10 @@ alter table public.interview_reservations enable row level security;
 drop policy if exists "누구나 신청" on public.interview_reservations;
 drop policy if exists "관리자 전체 권한" on public.interview_reservations;
 
--- 신청은 누구나, 명단 조회는 로그인한 관리자만
+-- 신청은 누구나 (마감일 10/13 까지, 한국 시간), 명단 조회는 로그인한 관리자만
 create policy "누구나 신청" on public.interview_reservations
-  for insert to anon, authenticated with check (true);
+  for insert to anon, authenticated
+  with check ((now() at time zone 'Asia/Seoul')::date <= date '2026-10-13');
 create policy "관리자 전체 권한" on public.interview_reservations
   for all to authenticated using (true) with check (true);
 

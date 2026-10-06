@@ -1,3 +1,6 @@
+/** 신청 마감: 이 날짜까지(한국 시간) 받습니다. 바꾸면 supabase/interview.sql 의 날짜도 같이 바꾸고 다시 실행하세요. */
+export const INTERVIEW_DEADLINE = "2026-10-13";
+
 /** 면담 일정. 일정을 바꾸려면 여기만 고치면 됩니다. ("날짜 시:분", 장소) */
 export const INTERVIEW_SLOTS: { slot: string; place?: string }[] = [
   { slot: "2026-10-14 15:00" },

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { formatPhone } from "@/lib/phone";
-import { INTERVIEW_SLOTS, INTERVIEW_QUESTIONS, slotLabel } from "@/lib/interview";
+import { INTERVIEW_SLOTS, INTERVIEW_QUESTIONS, INTERVIEW_DEADLINE, slotLabel } from "@/lib/interview";
 import { ChevronLeft, Clock, MapPin, CheckCircle2 } from "lucide-react";
 
 export default function InterviewPage() {
@@ -25,6 +25,7 @@ export default function InterviewPage() {
   // 지난 날짜는 숨김
   const today = new Date().toLocaleDateString("sv-SE"); // "2026-10-14" 형식
   const slots = INTERVIEW_SLOTS.filter((s) => s.slot.slice(0, 10) >= today);
+  const closed = today > INTERVIEW_DEADLINE; // 최종 판정은 DB 가 함
 
   const handleBack = () => {
     setSelected(null);
@@ -54,6 +55,9 @@ export default function InterviewPage() {
         handleBack();
       } else if (error.code === "23505") {
         alert("이 번호로 이미 예약되어 있습니다.");
+      } else if (error.code === "42501") {
+        alert("신청이 마감되었습니다.");
+        handleBack();
       } else if (error.code === "23514") {
         alert("입력하신 내용을 다시 확인해 주세요. (연락처 11자리 등)");
       } else {
@@ -81,10 +85,17 @@ export default function InterviewPage() {
           <p className="text-[15px] font-semibold opacity-95 mt-1">
             원하시는 시간을 눌러 신청하세요.
           </p>
+          <span className="inline-flex items-center gap-1.5 mt-3 text-[13px] font-semibold bg-white/20 px-3 py-1.5 rounded-full">
+            <Clock size={13} /> 신청 마감 {slotLabel(`${INTERVIEW_DEADLINE} 00:00`).date}까지
+          </span>
         </div>
 
         <div className="p-4 md:p-6 bg-gray-50 min-h-full">
-          {done ? (
+          {closed && !done ? (
+            <div className="bg-white p-8 rounded-2xl text-center text-lg font-bold text-gray-500 shadow-card">
+              면담 신청이 마감되었습니다.
+            </div>
+          ) : done ? (
             <div className="bg-white rounded-[20px] shadow-card p-6 md:p-8 text-center animate-fade-in">
               <CheckCircle2 size={64} className="text-brand mx-auto mb-4" />
               <h2 className="text-2xl font-bold">예약이 완료되었습니다</h2>
