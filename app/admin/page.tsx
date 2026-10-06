@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { INTERVIEW_SLOTS, INTERVIEW_QUESTIONS, slotLabel } from "@/lib/interview";
-import { Clock, MapPin, Phone, LogOut, ChevronDown } from "lucide-react";
+import { Clock, MapPin, Phone, LogOut, ChevronDown, Download } from "lucide-react";
 
 type Row = {
   id: number;
@@ -60,6 +60,27 @@ export default function Admin() {
     load();
   };
 
+  // 엑셀에서 바로 열리는 CSV (한글 깨짐 방지 BOM 포함)
+  const download = () => {
+    // 신청자가 =, + 등으로 시작하게 적으면 엑셀이 수식으로 실행하므로 막음
+    const cell = (v: string) => `"${(/^[=+\-@]/.test(v) ? `'${v}` : v).replace(/"/g, '""')}"`;
+    const head = ["날짜", "시간", "장소", "성함", "소속셀", "연락처", ...INTERVIEW_QUESTIONS, "신청일시"];
+    const body = INTERVIEW_SLOTS.filter((s) => bySlot.has(s.slot)).map(({ slot, place }) => {
+      const r = bySlot.get(slot)!;
+      const { date, time } = slotLabel(slot);
+      return [
+        date, time, place, r.user_name, r.cell, r.user_phone,
+        ...INTERVIEW_QUESTIONS.map((q) => r.answers?.[q] ?? ""),
+        new Date(r.created_at).toLocaleString("ko-KR"),
+      ];
+    });
+    const csv = [head, ...body].map((line) => line.map((v) => cell(String(v))).join(",")).join("\r\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
+    a.download = `면담예약_${new Date().toLocaleDateString("sv-SE")}.csv`;
+    a.click();
+  };
+
   if (loggedIn === undefined)
     return <div className="h-screen flex items-center justify-center text-brand font-bold">인증 확인 중...</div>;
 
@@ -89,12 +110,21 @@ export default function Admin() {
             {rows.length}명 예약 · 빈 시간 {freeSlots.length}개
           </p>
         </div>
-        <button
-          onClick={() => supabase.auth.signOut().then(() => setLoggedIn(false))}
-          className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100"
-        >
-          <LogOut size={16} /> 로그아웃
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={download}
+            disabled={rows.length === 0}
+            className="flex items-center gap-1.5 text-sm font-bold text-white bg-brand px-3 py-2 rounded-lg hover:bg-brand-dark disabled:bg-gray-300"
+          >
+            <Download size={16} /> 엑셀
+          </button>
+          <button
+            onClick={() => supabase.auth.signOut().then(() => setLoggedIn(false))}
+            className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100"
+          >
+            <LogOut size={16} /> 로그아웃
+          </button>
+        </div>
       </header>
 
       {/* 시간순 타임라인: 예약된 칸은 카드, 빈 칸은 한 줄 */}
