@@ -19,6 +19,11 @@ alter table public.interview_reservations
   add column if not exists answers jsonb not null default '{}'
   check (length(answers::text) < 20000);
 
+-- 소속셀
+alter table public.interview_reservations
+  add column if not exists cell text not null default ''
+  check (length(cell) <= 30);
+
 alter table public.interview_reservations enable row level security;
 
 drop policy if exists "누구나 신청" on public.interview_reservations;

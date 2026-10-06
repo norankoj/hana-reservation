@@ -45,7 +45,7 @@ export default function InterviewPage() {
     // 한 시간대 한 명 / 한 번호 한 번은 DB 가 막아 줍니다 (동시 신청에도 안전).
     const { error } = await supabase
       .from("interview_reservations")
-      .insert({ slot: selected, user_name: userName, user_phone: userPhone, answers });
+      .insert({ slot: selected, user_name: userName, user_phone: userPhone, cell: String(f.get("userCell") ?? "").trim(), answers });
     setIsLoading(false);
 
     if (error) {
@@ -155,6 +155,20 @@ export default function InterviewPage() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <label htmlFor="userCell" className="block text-lg font-bold text-gray-700 ml-1">
+                    소속셀
+                  </label>
+                  <input
+                    id="userCell"
+                    name="userCell"
+                    type="text"
+                    maxLength={30}
+                    required
+                    placeholder="예: 1A16"
+                    className="w-full border-2 border-gray-200 rounded-2xl p-4 text-lg outline-none focus:border-brand bg-gray-50 focus:bg-white transition-all"
+                  />
+                </div>
+                <div className="space-y-2">
                   <label htmlFor="userPhone" className="block text-lg font-bold text-gray-700 ml-1">
                     연락처
                   </label>
@@ -173,6 +187,9 @@ export default function InterviewPage() {
                     className="w-full border-2 border-gray-200 rounded-2xl p-4 text-lg outline-none focus:border-brand bg-gray-50 focus:bg-white transition-all"
                   />
                 </div>
+                <p className="pt-6 border-t border-gray-100 text-base md:text-lg font-bold text-brand leading-relaxed">
+                  풍성한 면담을 위해 아래 사전 질문은 가능한 한 구체적으로 작성 부탁드립니다.
+                </p>
                 {INTERVIEW_QUESTIONS.map((q, i) => (
                   <div key={q} className="space-y-2">
                     <label htmlFor={`q${i}`} className="block text-lg font-bold text-gray-700 ml-1">

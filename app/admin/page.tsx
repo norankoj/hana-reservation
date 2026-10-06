@@ -10,6 +10,7 @@ type Row = {
   slot: string;
   user_name: string;
   user_phone: string;
+  cell: string;
   answers: Record<string, string>;
   created_at: string;
 };
@@ -125,7 +126,10 @@ export default function Admin() {
               >
                 <div className="min-w-0">
                   {when}
-                  <p className="text-xl font-bold mt-1">{r.user_name}</p>
+                  <p className="text-xl font-bold mt-1">
+                    {r.user_name}
+                    {r.cell && <span className="ml-2 text-base font-semibold text-gray-500">{r.cell}</span>}
+                  </p>
                 </div>
                 <ChevronDown size={22} className={`shrink-0 text-gray-400 transition ${expanded ? "rotate-180" : ""}`} />
               </button>
