@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "하나교회 예약",
+  title: "예약하기",
   description: "원하시는 일정을 선택하여 예약해 주세요.",
 };
 
