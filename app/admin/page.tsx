@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
 import { INTERVIEW_SLOTS, INTERVIEW_QUESTIONS, slotLabel } from "@/lib/interview";
 import { Clock, MapPin, Phone, LogOut, ChevronDown, Download } from "lucide-react";
 
@@ -16,48 +15,70 @@ type Row = {
 };
 
 export default function Admin() {
-  // undefined = 확인 중, null = 로그인 안 됨
-  const [loggedIn, setLoggedIn] = useState<boolean | undefined>(undefined);
+  // 비밀번호는 이 탭에서만 기억 (탭을 닫으면 다시 로그인)
+  const [password, setPassword] = useState<string | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
   const [open, setOpen] = useState<number | null>(null);
 
-  const load = async () => {
-    const { data } = await supabase.from("interview_reservations").select("*");
-    setRows(data ?? []);
+  const api = async (pw: string, body: object = {}) => {
+    const res = await fetch("/api/admin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: pw, ...body }),
+    });
+    return { status: res.status, ...(await res.json().catch(() => ({}))) };
+  };
+
+  const load = async (pw: string) => {
+    const r = await api(pw);
+    if (r.status === 401) {
+      logout();
+      return false;
+    }
+    setRows(r.rows ?? []);
+    return true;
+  };
+
+  const logout = () => {
+    try { sessionStorage.removeItem("adminPw"); } catch {}
+    setPassword(null);
+    setRows([]);
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setLoggedIn(!!data.session);
-      if (data.session) load();
+    let saved: string | null = null;
+    try { saved = sessionStorage.getItem("adminPw"); } catch {}
+    if (!saved) return;
+    api(saved).then((r) => {
+      if (r.status !== 200) return;
+      setRows(r.rows ?? []);
+      setPassword(saved);
     });
   }, []);
 
   const login = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const f = new FormData(e.currentTarget);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: String(f.get("email")),
-      password: String(f.get("password")),
-    });
-    if (error) return alert("로그인 실패: 정보를 다시 확인해주세요.");
-    setLoggedIn(true);
-    load();
+    const pw = String(new FormData(e.currentTarget).get("password"));
+    if (!(await load(pw))) return alert("비밀번호가 맞지 않습니다.");
+    try { sessionStorage.setItem("adminPw", pw); } catch {}
+    setPassword(pw);
   };
 
   const cancel = async (r: Row) => {
+    if (!password) return;
     if (!confirm(`${r.user_name}님의 예약을 취소할까요?\n(응답 내용도 함께 삭제되며, 그 시간은 다시 열립니다)`)) return;
-    const { error } = await supabase.from("interview_reservations").delete().eq("id", r.id);
-    if (error) alert("취소 중 오류가 발생했습니다.");
-    load();
+    const res = await api(password, { action: "cancel", id: r.id });
+    if (res.error) alert("취소 중 오류가 발생했습니다.");
+    load(password);
   };
 
   const move = async (r: Row, slot: string) => {
+    if (!password) return;
     const { date, time } = slotLabel(slot);
     if (!confirm(`${r.user_name}님 일정을 ${date} ${time}(으)로 변경할까요?`)) return;
-    const { error } = await supabase.from("interview_reservations").update({ slot }).eq("id", r.id);
-    if (error) alert(error.code === "23505" ? "이미 예약된 시간입니다." : "변경 중 오류가 발생했습니다.");
-    load();
+    const res = await api(password, { action: "move", id: r.id, slot });
+    if (res.error) alert(res.error === "TAKEN" ? "이미 예약된 시간입니다." : "변경 중 오류가 발생했습니다.");
+    load(password);
   };
 
   // 엑셀에서 바로 열리는 CSV (한글 깨짐 방지 BOM 포함)
@@ -81,15 +102,11 @@ export default function Admin() {
     a.click();
   };
 
-  if (loggedIn === undefined)
-    return <div className="h-screen flex items-center justify-center text-brand font-bold">인증 확인 중...</div>;
-
-  if (!loggedIn)
+  if (!password)
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <form onSubmit={login} className="bg-white p-8 rounded-[20px] shadow-card-lg w-full max-w-sm space-y-4">
-          <h1 className="text-2xl font-bold text-center mb-2">관리자 로그인</h1>
-          <input name="email" type="email" placeholder="이메일" required className="w-full border-2 border-gray-200 rounded-xl p-3 outline-none focus:border-brand" />
+          <h1 className="text-2xl font-bold text-center mb-2">면담 관리자</h1>
           <input name="password" type="password" placeholder="비밀번호" required className="w-full border-2 border-gray-200 rounded-xl p-3 outline-none focus:border-brand" />
           <button className="w-full bg-brand text-white font-bold py-3 rounded-xl hover:bg-brand-dark transition">로그인</button>
         </form>
@@ -119,7 +136,7 @@ export default function Admin() {
             <Download size={16} /> 엑셀
           </button>
           <button
-            onClick={() => supabase.auth.signOut().then(() => setLoggedIn(false))}
+            onClick={logout}
             className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100"
           >
             <LogOut size={16} /> 로그아웃

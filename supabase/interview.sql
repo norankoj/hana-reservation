@@ -29,12 +29,12 @@ alter table public.interview_reservations enable row level security;
 drop policy if exists "누구나 신청" on public.interview_reservations;
 drop policy if exists "관리자 전체 권한" on public.interview_reservations;
 
--- 신청은 누구나 (마감일 10/13 까지, 한국 시간), 명단 조회는 로그인한 관리자만
+-- 신청은 누구나 (마감일 10/13 까지, 한국 시간).
+-- 명단 조회/수정 정책은 일부러 없음: 관리자 페이지는 서버(api/admin)에서
+-- 비밀번호 확인 후 서비스 키로만 접근합니다. (소조 계정으로는 볼 수 없음)
 create policy "누구나 신청" on public.interview_reservations
   for insert to anon, authenticated
   with check ((now() at time zone 'Asia/Seoul')::date <= date '2026-10-13');
-create policy "관리자 전체 권한" on public.interview_reservations
-  for all to authenticated using (true) with check (true);
 
 -- 예약 페이지에는 "마감된 시간대" 만 (이름/번호 없이)
 create or replace function public.interview_taken()
