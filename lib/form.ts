@@ -1,3 +1,22 @@
+/** 질문 형식 (구글 설문지와 같은 이름) */
+export const QUESTION_TYPES = {
+  short: "단답형",
+  long: "장문형",
+  radio: "객관식 (하나 선택)",
+  checkbox: "체크박스 (여러 개 선택)",
+  select: "드롭다운",
+} as const;
+export type QuestionType = keyof typeof QUESTION_TYPES;
+
+export type Question = {
+  label: string; // 답변은 이 글을 키로 저장됨
+  type: QuestionType;
+  options: string[]; // 객관식/체크박스/드롭다운의 보기
+  required: boolean;
+};
+
+export const hasOptions = (t: QuestionType) => t === "radio" || t === "checkbox" || t === "select";
+
 /** 예약 설문 (DB forms 테이블 한 줄). 관리자 > 설정에서 만들고 고칩니다. */
 export type Form = {
   id: string; // 주소: 사이트주소/{id}
@@ -6,8 +25,14 @@ export type Form = {
   deadline: string; // "2026-10-13" 이 날짜까지 신청 받음
   slots: { slot: string; place: string }[]; // slot: "2026-10-14 15:00"
   closed: string[]; // 관리자가 닫은 시간
-  questions: string[];
+  questions: (Question | string)[]; // 예전 설문은 글만 저장돼 있음 → questionsOf 로 읽기
 };
+
+/** 질문 목록. 예전 형식(글만)은 필수 장문형으로 읽음 */
+export const questionsOf = (f: Pick<Form, "questions">): Question[] =>
+  f.questions.map((q) =>
+    typeof q === "string" ? { label: q, type: "long", options: [], required: true } : q,
+  );
 
 const WEEKDAYS = ["주일", "월", "화", "수", "목", "금", "토"];
 

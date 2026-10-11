@@ -4,8 +4,50 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { formatPhone } from "@/lib/phone";
-import { type Form, slotLabel, today } from "@/lib/form";
+import { type Form, type Question, slotLabel, today, questionsOf } from "@/lib/form";
 import { ChevronLeft, Clock, MapPin, CheckCircle2 } from "lucide-react";
+
+const field =
+  "w-full border-2 border-gray-200 rounded-2xl p-4 text-lg outline-none focus:border-brand bg-gray-50 focus:bg-white transition-all";
+
+/** 질문 하나. 형식에 따라 입력칸이 달라짐 */
+function QuestionField({ q, name }: { q: Question; name: string }) {
+  const title = (
+    <span className="block text-lg font-bold text-gray-700 ml-1">
+      {q.label}
+      {q.required ? <span className="text-red-500"> *</span> : <span className="text-sm text-gray-400 font-semibold"> (선택)</span>}
+    </span>
+  );
+
+  if (q.type === "radio" || q.type === "checkbox")
+    return (
+      <fieldset className="space-y-2">
+        <legend className="mb-2">{title}</legend>
+        {q.options.map((o) => (
+          <label key={o} className="flex items-center gap-3 p-3.5 rounded-2xl border-2 border-gray-200 bg-gray-50 has-[:checked]:border-brand has-[:checked]:bg-brand-soft cursor-pointer transition">
+            <input type={q.type} name={name} value={o} required={q.type === "radio" && q.required} className="w-5 h-5 accent-brand shrink-0" />
+            <span className="text-lg">{o}</span>
+          </label>
+        ))}
+      </fieldset>
+    );
+
+  return (
+    <label className="block space-y-2">
+      {title}
+      {q.type === "select" ? (
+        <select name={name} required={q.required} defaultValue="" className={field}>
+          <option value="" disabled>선택해 주세요</option>
+          {q.options.map((o) => <option key={o}>{o}</option>)}
+        </select>
+      ) : q.type === "short" ? (
+        <input name={name} required={q.required} maxLength={200} className={field} />
+      ) : (
+        <textarea name={name} required={q.required} maxLength={2000} placeholder="자유롭게 적어주세요." className={`${field} h-32 resize-none`} />
+      )}
+    </label>
+  );
+}
 
 export default function ReservePage() {
   const { formId } = useParams<{ formId: string }>();
@@ -16,6 +58,7 @@ export default function ReservePage() {
   const [done, setDone] = useState<{ name: string; slot: string } | null>(null);
   const [userPhone, setUserPhone] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const questions = form ? questionsOf(form) : [];
 
   // 설문 내용 + 예약된 시간을 다시 받아옴 (닫힘/마감도 최신으로)
   const refresh = () =>
@@ -42,9 +85,13 @@ export default function ReservePage() {
     if (!form || !selected || isLoading) return;
     const f = new FormData(e.currentTarget);
     const userName = String(f.get("userName") ?? "").trim();
+    // 체크박스는 고른 것들을 ", " 로 이어서 저장
     const answers = Object.fromEntries(
-      form.questions.map((q, i) => [q, String(f.get(`q${i}`) ?? "").trim()]),
+      questions.map((q, i) => [q.label, f.getAll(`q${i}`).map((v) => String(v).trim()).filter(Boolean).join(", ")]),
     );
+    // 필수 체크박스는 브라우저가 검사해 주지 않아서 직접 확인
+    const missing = questions.find((q) => q.required && q.type === "checkbox" && !answers[q.label]);
+    if (missing) return alert(`'${missing.label}' 항목을 하나 이상 선택해 주세요.`);
 
     setIsLoading(true);
     // 한 시간대 한 명 / 한 번호 한 번 / 마감 / 닫힌 시간은 DB 가 막아 줍니다.
@@ -205,25 +252,13 @@ export default function ReservePage() {
                     className="w-full border-2 border-gray-200 rounded-2xl p-4 text-lg outline-none focus:border-brand bg-gray-50 focus:bg-white transition-all"
                   />
                 </div>
-                {form.questions.length > 0 && (
+                {questions.length > 0 && (
                   <p className="pt-6 border-t border-gray-100 text-base md:text-lg font-bold text-brand leading-relaxed whitespace-pre-wrap">
                     {form.intro}
                   </p>
                 )}
-                {form.questions.map((q, i) => (
-                  <div key={q} className="space-y-2">
-                    <label htmlFor={`q${i}`} className="block text-lg font-bold text-gray-700 ml-1">
-                      {q}
-                    </label>
-                    <textarea
-                      id={`q${i}`}
-                      name={`q${i}`}
-                      maxLength={2000}
-                      required
-                      placeholder="자유롭게 적어주세요."
-                      className="w-full border-2 border-gray-200 rounded-2xl p-4 text-lg h-32 outline-none focus:border-brand bg-gray-50 focus:bg-white resize-none"
-                    />
-                  </div>
+                {questions.map((q, i) => (
+                  <QuestionField key={`${i}-${q.label}`} q={q} name={`q${i}`} />
                 ))}
                 <button
                   type="submit"

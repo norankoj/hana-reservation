@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { createHash, timingSafeEqual } from "node:crypto";
-import type { Form } from "@/lib/form";
+import { createHash, timingSafeEqual, randomUUID } from "node:crypto";
+import { type Form, QUESTION_TYPES, hasOptions, questionsOf } from "@/lib/form";
 
 // 관리자 기능은 서버에서만. 비밀번호(ADMIN_PASSWORD)가 맞을 때만
 // 서비스 키로 명단/설문을 읽고 고칩니다. (브라우저에는 서비스 키가 가지 않음)
@@ -67,19 +67,31 @@ export async function POST(request: Request) {
         intro: String(f.intro ?? ""),
         deadline: f.deadline,
         slots: [...f.slots].sort((x, y) => x.slot.localeCompare(y.slot)),
-        questions: f.questions.map((q) => q.trim()).filter(Boolean),
+        questions: questionsOf(f)
+          .map((q) => ({
+            label: String(q.label ?? "").trim(),
+            type: q.type,
+            options: hasOptions(q.type) ? q.options.map((o) => String(o).trim()).filter(Boolean) : [],
+            required: !!q.required,
+          }))
+          .filter((q) => q.label),
       };
       const times = row.slots.map((s) => s.slot);
+      const labels = row.questions.map((q) => q.label);
       if (
         !row.title ||
+        row.questions.some((q) => !(q.type in QUESTION_TYPES) || (hasOptions(q.type) && !q.options.length)) ||
+        new Set(labels).size !== labels.length || // 답변을 질문 글로 저장하므로 같은 질문 두 개는 안 됨
         !/^\d{4}-\d{2}-\d{2}$/.test(row.deadline) ||
         times.some((t) => !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(t)) ||
         new Set(times).size !== times.length
       )
         return fail("INVALID");
       if (b.isNew) {
-        const { error } = await forms().insert({ id: f.id, ...row });
-        return error ? fail(error.code === "23505" ? "ID_TAKEN" : "INVALID") : NextResponse.json({ ok: true });
+        // 주소는 랜덤 (기도의 잔처럼). 예: /k3x9a2mf
+        const id = randomUUID().replace(/-/g, "").slice(0, 8);
+        const { error } = await forms().insert({ id, ...row });
+        return error ? fail("INVALID") : NextResponse.json({ ok: true, id });
       }
       // 예약이 들어온 시간은 설정에서 지울 수 없게 (예약이 붕 뜨지 않도록)
       const { data: booked } = await reservations().select("slot").eq("form_id", f.id);
@@ -87,7 +99,7 @@ export async function POST(request: Request) {
       const lost = (booked ?? []).filter((r) => !keep.has(r.slot)).map((r) => r.slot);
       if (lost.length) return NextResponse.json({ error: "BOOKED", slots: lost }, { status: 400 });
       const { error } = await forms().update(row).eq("id", f.id);
-      return error ? fail("INVALID") : NextResponse.json({ ok: true });
+      return error ? fail("INVALID") : NextResponse.json({ ok: true, id: f.id });
     }
 
     // 설문 삭제 (예약/응답도 함께 삭제됨)

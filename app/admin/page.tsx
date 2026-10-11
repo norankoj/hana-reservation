@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { type Form, slotLabel } from "@/lib/form";
+import { type Form, slotLabel, questionsOf } from "@/lib/form";
 import { adminApi, savedPassword, savePassword } from "@/lib/admin";
 import {
   Clock, MapPin, Phone, LogOut, ChevronDown, Download, Settings, Plus, Link2, Lock, Unlock,
@@ -107,7 +107,7 @@ export default function Admin() {
 
   const bySlot = new Map(rows.map((r) => [r.slot, r]));
   const slots = form?.slots ?? [];
-  const questions = form?.questions ?? [];
+  const questions = form ? questionsOf(form).map((q) => q.label) : [];
   const freeSlots = slots.filter((s) => !bySlot.has(s.slot) && !form?.closed.includes(s.slot));
 
   // 엑셀에서 바로 열리는 CSV (한글 깨짐 방지 BOM 포함)
@@ -139,20 +139,7 @@ export default function Admin() {
       <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-3 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto flex flex-wrap items-center justify-between gap-2">
           <div className="min-w-0">
-            {forms.length > 0 ? (
-              <select
-                value={formId ?? ""}
-                onChange={(e) => password && load(password, e.target.value)}
-                aria-label="설문 선택"
-                className="text-lg md:text-xl font-bold bg-transparent outline-none max-w-full"
-              >
-                {forms.map((f) => (
-                  <option key={f.id} value={f.id}>{f.title}</option>
-                ))}
-              </select>
-            ) : (
-              <h1 className="text-lg font-bold">관리자</h1>
-            )}
+            <h1 className="text-lg md:text-xl font-bold">{form?.title ?? "관리자"}</h1>
             {form && (
               <p className="text-sm text-gray-500 font-semibold">
                 {rows.length}명 예약 · 빈 시간 {freeSlots.length}개 · 마감 {slotLabel(`${form.deadline} 00:00`).date}
@@ -177,6 +164,20 @@ export default function Admin() {
             <button onClick={logout} aria-label="로그아웃" className={btn}><LogOut size={16} /></button>
           </div>
         </div>
+        {/* 설문 목록: 누르면 그 설문의 결과를 봄 */}
+        {forms.length > 1 && (
+          <nav className="max-w-3xl mx-auto flex gap-2 overflow-x-auto pt-3 -mb-1 pb-1">
+            {forms.map((f) => (
+              <button
+                key={f.id}
+                onClick={() => password && load(password, f.id)}
+                className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-bold transition ${f.id === formId ? "bg-brand text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+              >
+                {f.title}
+              </button>
+            ))}
+          </nav>
+        )}
       </header>
 
       {!form ? (
