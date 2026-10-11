@@ -1,31 +1,36 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { formatPhone } from "@/lib/phone";
-import { INTERVIEW_SLOTS, INTERVIEW_QUESTIONS, INTERVIEW_DEADLINE, slotLabel } from "@/lib/interview";
+import { type Form, slotLabel, today } from "@/lib/form";
 import { ChevronLeft, Clock, MapPin, CheckCircle2 } from "lucide-react";
 
-export default function InterviewPage() {
-  const [taken, setTaken] = useState<string[] | null>(null);
+export default function ReservePage() {
+  const { formId } = useParams<{ formId: string }>();
+  // undefined = 불러오는 중, null = 없는 설문
+  const [form, setForm] = useState<Form | null | undefined>(undefined);
+  const [taken, setTaken] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [done, setDone] = useState<{ name: string; slot: string } | null>(null);
   const [userPhone, setUserPhone] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchTaken = async () => {
-    const { data } = await supabase.rpc("interview_taken");
-    setTaken(data ?? []);
-  };
+  // 설문 내용 + 예약된 시간을 다시 받아옴 (닫힘/마감도 최신으로)
+  const refresh = () =>
+    Promise.all([
+      supabase.from("forms").select("*").eq("id", formId).maybeSingle(),
+      supabase.rpc("form_taken", { p_form: formId }),
+    ]).then(([f, t]) => {
+      setForm(f.data ?? null);
+      setTaken(t.data ?? []);
+    });
 
   useEffect(() => {
-    supabase.rpc("interview_taken").then(({ data }) => setTaken(data ?? []));
-  }, []);
-
-  // 지난 날짜는 숨김
-  const today = new Date().toLocaleDateString("sv-SE"); // "2026-10-14" 형식
-  const slots = INTERVIEW_SLOTS.filter((s) => s.slot.slice(0, 10) >= today);
-  const closed = today > INTERVIEW_DEADLINE; // 최종 판정은 DB 가 함
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formId]);
 
   const handleBack = () => {
     setSelected(null);
@@ -34,29 +39,34 @@ export default function InterviewPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!selected || isLoading) return;
+    if (!form || !selected || isLoading) return;
     const f = new FormData(e.currentTarget);
     const userName = String(f.get("userName") ?? "").trim();
     const answers = Object.fromEntries(
-      INTERVIEW_QUESTIONS.map((q, i) => [q, String(f.get(`q${i}`) ?? "").trim()]),
+      form.questions.map((q, i) => [q, String(f.get(`q${i}`) ?? "").trim()]),
     );
 
     setIsLoading(true);
-    // 한 시간대 한 명 / 한 번호 한 번은 DB 가 막아 줍니다 (동시 신청에도 안전).
-    const { error } = await supabase
-      .from("interview_reservations")
-      .insert({ slot: selected, user_name: userName, user_phone: userPhone, cell: String(f.get("userCell") ?? "").trim(), answers });
+    // 한 시간대 한 명 / 한 번호 한 번 / 마감 / 닫힌 시간은 DB 가 막아 줍니다.
+    const { error } = await supabase.from("interview_reservations").insert({
+      form_id: form.id,
+      slot: selected,
+      user_name: userName,
+      user_phone: userPhone,
+      cell: String(f.get("userCell") ?? "").trim(),
+      answers,
+    });
     setIsLoading(false);
 
     if (error) {
-      await fetchTaken();
+      await refresh();
       if (error.code === "23505" && error.message.includes("slot")) {
         alert("죄송합니다. 방금 다른 분이 예약하셨습니다.\n다른 시간을 선택해 주세요.");
         handleBack();
       } else if (error.code === "23505") {
         alert("이 번호로 이미 예약되어 있습니다.");
       } else if (error.code === "42501") {
-        alert("신청이 마감되었습니다.");
+        alert("신청이 마감되었거나 닫힌 시간입니다.\n다른 시간을 선택해 주세요.");
         handleBack();
       } else if (error.code === "23514") {
         alert("입력하신 내용을 다시 확인해 주세요. (연락처 11자리 등)");
@@ -66,13 +76,22 @@ export default function InterviewPage() {
       return;
     }
 
-    await fetchTaken();
+    await refresh();
     setDone({ name: userName, slot: selected });
     handleBack();
     window.scrollTo(0, 0);
   };
 
-  const sel = INTERVIEW_SLOTS.find((s) => s.slot === selected);
+  if (form === undefined)
+    return <div className="min-h-screen bg-gray-50 text-center py-20 text-gray-400 text-lg font-bold">잠시만 기다려주세요...</div>;
+  if (form === null)
+    return <div className="min-h-screen bg-gray-50 text-center py-20 text-gray-500 text-lg font-bold">없는 페이지입니다. 주소를 확인해 주세요.</div>;
+
+  // 지난 날짜는 숨김
+  const slots = form.slots.filter((s) => s.slot.slice(0, 10) >= today());
+  const ended = today() > form.deadline;
+  const sel = form.slots.find((s) => s.slot === selected);
+  const doneSlot = done && form.slots.find((s) => s.slot === done.slot);
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 flex justify-center md:p-6 font-sans">
@@ -80,20 +99,20 @@ export default function InterviewPage() {
         <div className="relative overflow-hidden bg-[linear-gradient(135deg,#6b7bff_0%,#8a7bff_55%,#9d8bff_100%)] text-white px-6 py-6 md:px-8 md:py-7">
           <div className="pointer-events-none absolute -right-10 -top-10 size-44 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.22),transparent_70%)]" />
           <h1 className="text-[28px] md:text-3xl font-extrabold tracking-[-0.03em]">
-            면담 예약
+            {form.title}
           </h1>
           <p className="text-[15px] font-semibold opacity-95 mt-1">
             원하시는 시간을 눌러 신청하세요.
           </p>
           <span className="inline-flex items-center gap-1.5 mt-3 text-[13px] font-semibold bg-white/20 px-3 py-1.5 rounded-full">
-            <Clock size={13} /> 신청 마감 {slotLabel(`${INTERVIEW_DEADLINE} 00:00`).date}까지
+            <Clock size={13} /> 신청 마감 {slotLabel(`${form.deadline} 00:00`).date}까지
           </span>
         </div>
 
         <div className="p-4 md:p-6 bg-gray-50 min-h-full">
-          {closed && !done ? (
+          {ended && !done ? (
             <div className="bg-white p-8 rounded-2xl text-center text-lg font-bold text-gray-500 shadow-card">
-              면담 신청이 마감되었습니다.
+              신청이 마감되었습니다.
             </div>
           ) : done ? (
             <div className="bg-white rounded-[20px] shadow-card p-6 md:p-8 text-center animate-fade-in">
@@ -104,8 +123,7 @@ export default function InterviewPage() {
               </p>
               <p className="text-lg font-bold mt-6 bg-brand-soft rounded-2xl p-5">
                 {slotLabel(done.slot).date} {slotLabel(done.slot).time}
-                {INTERVIEW_SLOTS.find((s) => s.slot === done.slot)?.place &&
-                  ` · ${INTERVIEW_SLOTS.find((s) => s.slot === done.slot)?.place}`}
+                {doneSlot?.place && ` · ${doneSlot.place}`}
               </p>
               <button
                 type="button"
@@ -187,10 +205,12 @@ export default function InterviewPage() {
                     className="w-full border-2 border-gray-200 rounded-2xl p-4 text-lg outline-none focus:border-brand bg-gray-50 focus:bg-white transition-all"
                   />
                 </div>
-                <p className="pt-6 border-t border-gray-100 text-base md:text-lg font-bold text-brand leading-relaxed">
-                  풍성한 면담을 위해 아래 사전 질문은 가능한 한 구체적으로 작성 부탁드립니다.
-                </p>
-                {INTERVIEW_QUESTIONS.map((q, i) => (
+                {form.questions.length > 0 && (
+                  <p className="pt-6 border-t border-gray-100 text-base md:text-lg font-bold text-brand leading-relaxed whitespace-pre-wrap">
+                    {form.intro}
+                  </p>
+                )}
+                {form.questions.map((q, i) => (
                   <div key={q} className="space-y-2">
                     <label htmlFor={`q${i}`} className="block text-lg font-bold text-gray-700 ml-1">
                       {q}
@@ -214,15 +234,16 @@ export default function InterviewPage() {
                 </button>
               </form>
             </div>
-          ) : taken === null ? (
-            <div className="text-center py-20 text-gray-400 text-lg font-bold">
-              잠시만 기다려주세요...
+          ) : slots.length === 0 ? (
+            <div className="bg-white p-8 rounded-2xl text-center text-lg font-bold text-gray-500 shadow-card">
+              예약 가능한 일정이 없습니다.
             </div>
           ) : (
             <ul className="bg-white rounded-[20px] shadow-card divide-y divide-gray-100 overflow-hidden">
               {slots.map((s) => {
                 const { date, time } = slotLabel(s.slot);
-                const open = !taken.includes(s.slot);
+                // 예약됐거나 관리자가 닫은 시간은 똑같이 "마감"으로
+                const open = !taken.includes(s.slot) && !form.closed.includes(s.slot);
                 return (
                   <li
                     key={s.slot}

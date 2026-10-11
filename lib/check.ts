@@ -1,6 +1,6 @@
 // 실행: npm run check
 import assert from "node:assert/strict";
-import { slotLabel } from "./interview.ts";
+import { slotLabel } from "./form.ts";
 import { formatPhone } from "./phone.ts";
 
 assert.deepEqual(slotLabel("2026-10-14 15:00"), { date: "10월 14일 (수)", time: "오후 3시" });
