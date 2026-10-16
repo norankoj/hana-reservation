@@ -6,7 +6,13 @@ export const GOODS_DEADLINE = "2026-10-21"; // 이 날짜까지 주문·입금 (
 export const DISCOUNT = 0.1; // 단체 사전구매 10%
 
 // 우리 공동체 입금 계좌 (공식 계좌 아님. 담당자가 모아서 한 번에 보냄)
-export const ACCOUNT = "카카오뱅크 3333-14-8175694 (노나연)";
+export const BANK = "카카오뱅크";
+export const ACCOUNT_NO = "3333148175694";
+export const ACCOUNT = `${BANK} 3333-14-8175694 (노나연)`;
+
+/** 토스 앱 송금 화면을 받는 사람·금액이 채워진 채로 엶 (토스가 깔린 휴대폰에서만) */
+export const tossLink = (amount: number) =>
+  `supertoss://send?bank=${encodeURIComponent(BANK)}&accountNo=${ACCOUNT_NO}&amount=${amount}`;
 
 export const SET = "올인원 세트";
 export const SET_OPTIONS = {

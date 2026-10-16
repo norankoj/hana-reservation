@@ -5,11 +5,11 @@ import { supabase } from "@/lib/supabase";
 import { formatPhone } from "@/lib/phone";
 import { slotLabel, today } from "@/lib/form";
 import {
-  type Line, PRODUCTS, SET, SET_OPTIONS, ACCOUNT, GOODS_DEADLINE,
-  unitPrice, total, won, lineLabel, addLine,
+  type Line, PRODUCTS, SET, SET_OPTIONS, ACCOUNT, ACCOUNT_NO, GOODS_DEADLINE,
+  unitPrice, total, won, lineLabel, addLine, tossLink,
 } from "@/lib/goods";
 import Select from "./Select";
-import { Clock, CheckCircle2, Plus, X, ShoppingBag, Percent } from "lucide-react";
+import { Clock, CheckCircle2, Plus, X, ShoppingBag, Percent, Copy, Send } from "lucide-react";
 
 const field =
   "w-full border-2 border-gray-200 rounded-2xl p-4 text-lg outline-none focus:border-brand bg-gray-50 focus:bg-white transition-all";
@@ -21,6 +21,7 @@ export default function GoodsPage() {
   const [phone, setPhone] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [done, setDone] = useState<{ name: string; lines: Line[] } | null>(null);
+  const [qtys, setQtys] = useState<Record<string, number>>({}); // 상품 카드별로 고른 수량 (담기 버튼 금액용)
   const ended = today() > GOODS_DEADLINE;
 
   // 상품 카드에서 "담기"
@@ -56,6 +57,15 @@ export default function GoodsPage() {
 
   const sum = total(lines);
 
+  const copyAccount = async () => {
+    try {
+      await navigator.clipboard.writeText(ACCOUNT_NO);
+      alert("계좌번호를 복사했습니다.\n은행 앱에서 붙여넣어 주세요.");
+    } catch {
+      prompt("아래 계좌번호를 복사해 주세요.", ACCOUNT_NO);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 flex justify-center md:p-6 font-sans">
       <div className="max-w-xl w-full bg-white md:rounded-[24px] md:shadow-card-lg overflow-hidden min-h-[100dvh] md:min-h-0">
@@ -86,6 +96,15 @@ export default function GoodsPage() {
                 <p className="text-sm font-semibold text-brand">{deadline}까지 입금해 주세요</p>
                 <p className="text-2xl font-extrabold mt-1">{won(total(done.lines))}</p>
                 <p className="text-lg font-bold mt-2 select-all">{ACCOUNT}</p>
+                <div className="grid grid-cols-2 gap-2 mt-3">
+                  <button type="button" onClick={copyAccount} className="flex items-center justify-center gap-1.5 bg-white border-2 border-brand/30 text-brand font-bold py-3 rounded-xl active:scale-95">
+                    <Copy size={16} /> 계좌 복사
+                  </button>
+                  <a href={tossLink(total(done.lines))} className="flex items-center justify-center gap-1.5 bg-[#0064ff] text-white font-bold py-3 rounded-xl active:scale-95">
+                    <Send size={16} /> 토스로 송금
+                  </a>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">토스로 송금은 토스 앱이 있는 휴대폰에서 받는 계좌·금액이 채워진 채로 열려요.</p>
                 <p className="text-sm text-gray-600 mt-2">입금이 확인되어야 주문이 확정돼요. 예약 제작 상품이라 마감 후 취소·변경이 어려워요.</p>
               </div>
               <button type="button" onClick={() => setDone(null)} className="w-full mt-6 bg-gray-100 text-gray-700 font-bold py-4 rounded-2xl text-lg">
@@ -142,7 +161,7 @@ export default function GoodsPage() {
                         <span className="text-lg font-extrabold text-brand">{won(unitPrice(p.items[0]))}</span>
                       </p>
                       {p.note && <p className="text-sm text-gray-500 mt-1">{p.note}</p>}
-                      {p.notice && <p className="mt-2 text-base font-extrabold text-red-500">🎁 {p.notice}</p>}
+                      {p.notice && <p className="mt-2 text-base font-extrabold text-red-500">{p.notice}</p>}
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       {p.items.length > 1 ? (
@@ -155,7 +174,7 @@ export default function GoodsPage() {
                         Object.entries(SET_OPTIONS).map(([k, o]) => (
                           <Select key={k} name={k} placeholder={`${o.label} 디자인`} required options={[...o.options]} />
                         ))}
-                      <Select name="qty" defaultValue="1" options={Array.from({ length: 10 }, (_, i) => ({ value: String(i + 1), label: `${i + 1}개` }))} />
+                      <Select name="qty" defaultValue="1" onChange={(v) => setQtys({ ...qtys, [p.title]: Number(v) })} options={Array.from({ length: 10 }, (_, i) => ({ value: String(i + 1), label: `${i + 1}개` }))} />
                     </div>
                     {p.sizeGuide && (
                       <details className="text-sm text-gray-500">
@@ -165,7 +184,7 @@ export default function GoodsPage() {
                       </details>
                     )}
                     <button className="w-full flex items-center justify-center gap-1.5 border-2 border-brand/30 text-brand font-bold py-3 rounded-xl hover:bg-brand-soft transition active:scale-95">
-                      <Plus size={18} /> 담기
+                      <Plus size={18} /> {qtys[p.title] ?? 1}개 담기 · {won(unitPrice(p.items[0]) * (qtys[p.title] ?? 1))}
                     </button>
                   </div>
                 </form>
@@ -237,9 +256,9 @@ export default function GoodsPage() {
                 </label>
                 <label className="block space-y-2">
                   <span className="block text-lg font-bold text-gray-700 ml-1">
-                    입금자명 <span className="text-sm text-gray-400 font-semibold">(성함과 다를 때만)</span>
+                    입금자명
                   </span>
-                  <input name="depositor" maxLength={30} className={field} />
+                  <input name="depositor" maxLength={30} required placeholder="통장에 찍히는 이름" className={field} />
                 </label>
                 <p className="text-sm text-gray-500 leading-relaxed">
                   주문 후 {deadline}까지 안내되는 계좌로 입금해 주세요. 위 유의사항을 확인하고 주문해 주세요.

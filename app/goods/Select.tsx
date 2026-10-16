@@ -6,9 +6,10 @@ import { useState, useRef, useEffect } from "react";
 type Option = string | { value: string; label: string };
 
 export default function Select({
-  name, options, placeholder = "선택하세요", defaultValue = "", required,
+  name, options, placeholder = "선택하세요", defaultValue = "", required, onChange,
 }: {
   name: string;
+  onChange?: (value: string) => void;
   options: Option[];
   placeholder?: string;
   defaultValue?: string;
@@ -63,6 +64,7 @@ export default function Select({
               key={o.value}
               onClick={() => {
                 setValue(o.value);
+                onChange?.(o.value);
                 setIsOpen(false);
               }}
               className={`px-4 py-3 text-base cursor-pointer transition-colors ${
