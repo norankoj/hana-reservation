@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { adminApi, savedPassword } from "@/lib/admin";
-import { type Line, total, won, lineLabel, lineError, unitPrice, excelRows } from "@/lib/goods";
-import { ChevronLeft, Phone, Copy, Link2 } from "lucide-react";
+import { type Line, total, won, lineLabel, lineError } from "@/lib/goods";
+import { excelRows, fillOrderForm } from "@/lib/xlsx";
+import { ChevronLeft, Copy, Link2, Download, Search, Trash2 } from "lucide-react";
 
 type Order = {
   id: number;
@@ -16,9 +17,13 @@ type Order = {
   created_at: string;
 };
 
+const TABS = { all: "전체", unpaid: "미입금", paid: "입금 확인" } as const;
+
 export default function GoodsAdmin() {
   const [password, setPassword] = useState<string | null>(null);
   const [rows, setRows] = useState<Order[]>([]);
+  const [tab, setTab] = useState<keyof typeof TABS>("all");
+  const [q, setQ] = useState("");
 
   const load = async (pw: string) => setRows((await adminApi(pw, { action: "goods" })).rows ?? []);
 
@@ -41,6 +46,10 @@ export default function GoodsAdmin() {
   const paid = rows.filter((r) => r.paid);
   const unpaid = rows.filter((r) => !r.paid);
   const sum = (os: Order[]) => os.reduce((s, o) => s + total(o.items), 0);
+  const word = q.trim();
+  const shown = (tab === "all" ? rows : tab === "paid" ? paid : unpaid).filter(
+    (r) => !word || [r.name, r.phone, r.depositor].some((v) => v.includes(word)),
+  );
 
   const copy = async (text: string, msg: string) => {
     try {
@@ -51,79 +60,146 @@ export default function GoodsAdmin() {
     }
   };
 
-  const btn = "flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100";
+  // 공식 주문서에 입금 확인된 주문을 채워서 내려받기 (서식·수식 그대로)
+  const download = async () => {
+    try {
+      const tpl = new Uint8Array(await (await fetch("/goods/order-template.xlsx")).arrayBuffer());
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(await fillOrderForm(tpl, paid));
+      a.download = `오이타_굿즈_공동체_단체주문서_${new Date().toLocaleDateString("sv-SE")}.xlsx`;
+      a.click();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "다운로드 중 오류가 발생했습니다.");
+    }
+  };
+
+  const btn = "flex items-center gap-1.5 text-sm font-bold px-3 py-2 rounded-lg transition active:scale-[0.98]";
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-3 sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
+        <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-1">
             <Link href="/admin" aria-label="관리자" className="p-1 text-gray-500"><ChevronLeft size={22} /></Link>
-            <div>
-              <h1 className="text-lg md:text-xl font-bold">굿즈 단체주문</h1>
-              <p className="text-sm text-gray-500 font-semibold">
-                입금 확인 {paid.length}건 {won(sum(paid))} · 미입금 {unpaid.length}건 {won(sum(unpaid))}
-              </p>
-            </div>
+            <h1 className="text-lg md:text-xl font-bold">굿즈 단체주문</h1>
           </div>
           <div className="flex flex-wrap items-center gap-1">
-            <button onClick={() => copy(`${location.origin}/goods`, `주문 링크를 복사했습니다.\n${location.origin}/goods`)} className={btn}>
+            <button onClick={() => copy(`${location.origin}/goods`, `주문 링크를 복사했습니다.\n${location.origin}/goods`)} className={`${btn} text-gray-600 hover:bg-gray-100`}>
               <Link2 size={16} /> 링크
             </button>
             <button
-              onClick={() => copy(excelRows(paid), `입금 확인된 ${paid.length}건을 복사했습니다.\n\n공식 주문서 「개인별 주문」 시트의 B6 칸(No 1 줄의 이름 칸)을 누르고 붙여넣기 하세요.`)}
+              onClick={() => copy(excelRows(paid), `입금 확인된 ${paid.length}건을 복사했습니다.\n\n공식 주문서 「개인별 주문」 시트의 B6 칸을 누르고 붙여넣기 하세요.`)}
               disabled={paid.length === 0}
-              className="flex items-center gap-1.5 text-sm font-bold text-white bg-brand px-3 py-2 rounded-lg hover:bg-brand-dark disabled:bg-gray-300"
+              className={`${btn} text-brand border-2 border-brand/30 hover:bg-brand-soft disabled:text-gray-400 disabled:border-gray-200`}
             >
               <Copy size={16} /> 엑셀용 복사
+            </button>
+            <button onClick={download} disabled={paid.length === 0} className={`${btn} text-white bg-brand hover:bg-brand-dark disabled:bg-gray-300`}>
+              <Download size={16} /> 주문서 다운로드
             </button>
           </div>
         </div>
       </header>
 
-      <ol className="max-w-3xl mx-auto p-4 md:p-8 space-y-3">
-        {rows.length === 0 && <p className="text-center py-20 text-gray-400 font-bold">아직 주문이 없습니다.</p>}
-        {rows.map((o) => (
-          <li key={o.id} className={`bg-white rounded-[20px] shadow-card p-5 ${o.paid ? "" : "ring-2 ring-amber-200"}`}>
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div>
-                <p className="text-xl font-bold">
-                  {o.name}
-                  {o.depositor && <span className="ml-2 text-base font-semibold text-gray-500">입금자 {o.depositor}</span>}
-                </p>
-                <a href={`tel:${o.phone}`} className="inline-flex items-center gap-1 text-sm text-brand font-bold"><Phone size={13} /> {o.phone}</a>
-              </div>
-              <label className={`flex items-center gap-2 px-3 py-2 rounded-xl font-bold cursor-pointer ${o.paid ? "bg-brand-soft text-brand" : "bg-amber-50 text-amber-700"}`}>
-                <input type="checkbox" checked={o.paid} onChange={(e) => run({ action: "goodsPaid", id: o.id, paid: e.target.checked })} className="w-5 h-5 accent-brand" />
-                {won(total(o.items))} {o.paid ? "입금 확인" : "미입금"}
-              </label>
+      <main className="max-w-6xl mx-auto p-4 md:p-8 space-y-4">
+        {/* 한눈에: 입금 확인 금액 = 공식 계좌로 보낼 돈 */}
+        <section className="grid grid-cols-3 gap-2 md:gap-3">
+          {[
+            ["전체 주문", rows.length, sum(rows), "text-gray-900"],
+            ["입금 확인", paid.length, sum(paid), "text-brand"],
+            ["미입금", unpaid.length, sum(unpaid), "text-amber-600"],
+          ].map(([label, n, money, color]) => (
+            <div key={label as string} className="bg-white rounded-2xl shadow-card px-4 py-3">
+              <p className="text-[13px] font-semibold text-gray-500">{label}</p>
+              <p className={`text-xl md:text-2xl font-extrabold tabular-nums ${color}`}>{n}건</p>
+              <p className="text-[13px] font-semibold text-gray-600 tabular-nums">{won(money as number)}</p>
             </div>
-            <ul className="mt-3 space-y-1 text-base">
-              {o.items.map((l, i) => {
-                const err = lineError(l);
-                return (
-                  <li key={i} className="flex justify-between gap-3">
-                    <span>
-                      {lineLabel(l)} × {l.qty}
-                      {err && <span className="ml-2 text-sm font-bold text-red-500">⚠ {err}</span>}
-                    </span>
-                    <span className="text-gray-500 shrink-0">{won(unitPrice(l.item) * l.qty)}</span>
-                  </li>
-                );
-              })}
-            </ul>
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 text-xs text-gray-400">
-              <span>주문 {new Date(o.created_at).toLocaleString("ko-KR")}</span>
-              <button
-                onClick={() => confirm(`${o.name}님의 주문을 삭제할까요?`) && run({ action: "goodsDelete", id: o.id })}
-                className="text-sm font-bold text-red-500 hover:underline"
-              >
-                주문 삭제
-              </button>
+          ))}
+        </section>
+
+        <section className="bg-white rounded-2xl shadow-card overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-2 p-3 border-b border-gray-100">
+            <div className="flex gap-1">
+              {(Object.keys(TABS) as (keyof typeof TABS)[]).map((k) => (
+                <button
+                  key={k}
+                  onClick={() => setTab(k)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-bold transition ${tab === k ? "bg-brand text-white" : "text-gray-600 hover:bg-gray-100"}`}
+                >
+                  {TABS[k]}
+                </button>
+              ))}
             </div>
-          </li>
-        ))}
-      </ol>
+            <label className="flex items-center gap-2 border-2 border-gray-200 rounded-xl px-3 py-1.5 focus-within:border-brand w-full sm:w-64">
+              <Search size={16} className="text-gray-400 shrink-0" />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="이름·연락처·입금자명" className="w-full outline-none text-sm bg-transparent" />
+            </label>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] text-sm">
+              <thead className="bg-gray-50 text-[13px] text-gray-500">
+                <tr>
+                  <th className="w-24 px-3 py-2.5 text-left font-semibold">입금</th>
+                  <th className="px-3 py-2.5 text-left font-semibold">이름 / 입금자명</th>
+                  <th className="px-3 py-2.5 text-left font-semibold">연락처</th>
+                  <th className="px-3 py-2.5 text-left font-semibold">주문 상품</th>
+                  <th className="px-3 py-2.5 text-right font-semibold">금액</th>
+                  <th className="px-3 py-2.5 text-left font-semibold">주문일</th>
+                  <th className="w-10" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {shown.map((o) => (
+                  <tr key={o.id} className={`align-top ${o.paid ? "" : "bg-amber-50/40"}`}>
+                    <td className="px-3 py-2.5">
+                      <label className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg font-bold cursor-pointer whitespace-nowrap ${o.paid ? "bg-brand-soft text-brand" : "bg-amber-100 text-amber-700"}`}>
+                        <input type="checkbox" checked={o.paid} onChange={(e) => run({ action: "goodsPaid", id: o.id, paid: e.target.checked })} className="w-4 h-4 accent-brand" />
+                        {o.paid ? "확인" : "미입금"}
+                      </label>
+                    </td>
+                    <td className="px-3 py-2.5 whitespace-nowrap">
+                      <p className="font-bold">{o.name}</p>
+                      {o.depositor && o.depositor !== o.name && <p className="text-[13px] text-gray-500">입금 {o.depositor}</p>}
+                    </td>
+                    <td className="px-3 py-2.5 whitespace-nowrap">
+                      <a href={`tel:${o.phone}`} className="text-gray-700 hover:text-brand tabular-nums">{o.phone}</a>
+                    </td>
+                    <td className="px-3 py-2.5">
+                      {o.items.map((l, i) => {
+                        const err = lineError(l);
+                        return (
+                          <p key={i} className="leading-relaxed">
+                            {lineLabel(l)} <span className="text-gray-500">× {l.qty}</span>
+                            {err && <span className="ml-1.5 text-[13px] font-bold text-red-500">⚠ {err}</span>}
+                          </p>
+                        );
+                      })}
+                    </td>
+                    <td className="px-3 py-2.5 text-right font-bold tabular-nums whitespace-nowrap">{won(total(o.items))}</td>
+                    <td className="px-3 py-2.5 text-gray-500 tabular-nums whitespace-nowrap">
+                      {new Date(o.created_at).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" })}{" "}
+                      {new Date(o.created_at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false })}
+                    </td>
+                    <td className="px-2 py-2.5">
+                      <button
+                        aria-label="주문 삭제"
+                        onClick={() => confirm(`${o.name}님의 주문을 삭제할까요?`) && run({ action: "goodsDelete", id: o.id })}
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {shown.length === 0 && (
+              <p className="text-center py-16 text-gray-400 font-bold">{rows.length ? "조건에 맞는 주문이 없습니다." : "아직 주문이 없습니다."}</p>
+            )}
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

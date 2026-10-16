@@ -2,7 +2,9 @@
 import assert from "node:assert/strict";
 import { slotLabel, questionsOf } from "./form.ts";
 import { formatPhone } from "./phone.ts";
-import { unitPrice, lineError, addLine, total, excelRows } from "./goods.ts";
+import { unitPrice, lineError, addLine, total } from "./goods.ts";
+import { excelRows, fillOrderForm, readZip, unzipText } from "./xlsx.ts";
+import { readFileSync } from "node:fs";
 
 assert.deepEqual(slotLabel("2026-10-14 15:00"), { date: "10월 14일 (수)", time: "오후 3시" });
 assert.equal(slotLabel("2026-11-07 09:30").time, "오전 9시 30분");
@@ -31,5 +33,21 @@ const lines = addLine(addLine([], { item: "스티커팩", qty: 1 }), { item: "�
 assert.deepEqual(lines, [{ item: "스티커팩", qty: 3 }]);
 assert.equal(total([...lines, set]), 2700 * 3 + 28800);
 assert.equal(excelRows([{ name: "홍길동", items: [set] }]), "홍길동\t올인원 세트\t\t레드 웨이브\t화이트\t1 스탬프\t1");
+
+// 공식 주문서 채우기: 다시 열어서 칸에 값이 들어갔는지, 나머지 파일은 그대로인지
+const tpl = new Uint8Array(readFileSync(new URL("../public/goods/order-template.xlsx", import.meta.url)));
+const out = new Uint8Array(await (await fillOrderForm(tpl, [
+  { name: "김<하나>", items: [set, { item: "후드집업 - 블랙", size: "L", qty: 2 }] },
+])).arrayBuffer());
+const entries = readZip(out);
+assert.equal(entries.length, readZip(tpl).length);
+const sheet = await unzipText(entries.find((e) => e.name === "xl/worksheets/sheet2.xml")!);
+assert.match(sheet, /<c r="B6" s="\d+" t="inlineStr"><is><t xml:space="preserve">김&lt;하나&gt;<\/t><\/is><\/c>/);
+assert.match(sheet, /<c r="E6" s="\d+" t="inlineStr"><is><t xml:space="preserve">레드 웨이브</);
+assert.match(sheet, /<c r="D7" s="\d+" t="inlineStr"><is><t xml:space="preserve">L</);
+assert.match(sheet, /<c r="H7" s="\d+"><v>2<\/v><\/c>/);
+assert.match(sheet, /<c r="I6"[^>]*><f[ >]/); // 수식 그대로
+assert.match(await unzipText(entries.find((e) => e.name === "xl/workbook.xml")!), /fullCalcOnLoad="1"/);
+if (process.env.XLSX_OUT) (await import("node:fs")).writeFileSync(process.env.XLSX_OUT, out);
 
 console.log("✅ lib 검증 통과");

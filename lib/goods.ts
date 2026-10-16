@@ -8,7 +8,8 @@ export const DISCOUNT = 0.1; // 단체 사전구매 10%
 // 우리 공동체 입금 계좌 (공식 계좌 아님. 담당자가 모아서 한 번에 보냄)
 export const BANK = "카카오뱅크";
 export const ACCOUNT_NO = "3333148175694";
-export const ACCOUNT = `${BANK} 3333-14-8175694 (노나연)`;
+export const ACCOUNT_SHOWN = "3333-14-8175694";
+export const HOLDER = "노나연";
 
 /** 토스 앱 송금 화면을 받는 사람·금액이 채워진 채로 엶 (토스가 깔린 휴대폰에서만) */
 export const tossLink = (amount: number) =>
@@ -110,13 +111,3 @@ export const addLine = (lines: Line[], l: Line): Line[] => {
   const same = lines.find((x) => lineLabel(x) === lineLabel(l));
   return same ? lines.map((x) => (x === same ? { ...x, qty: x.qty + l.qty } : x)) : [...lines, l];
 };
-
-/** 엑셀 「개인별 주문」 B~H 칸 (이름, 상품, 사이즈, 세트: 반다나, 세트: 바쿠백, 세트: 키링, 수량). 탭으로 구분 */
-export const excelRows = (orders: { name: string; items: Line[] }[]) =>
-  orders
-    .flatMap((o) =>
-      o.items.map((l) =>
-        [o.name, l.item, l.size, l.bandana, l.bag, l.keyring, l.qty].map((v) => String(v ?? "").replace(/[\t\n\r]/g, " ")).join("\t"),
-      ),
-    )
-    .join("\n");
