@@ -3,19 +3,21 @@ import { createClient } from "@supabase/supabase-js";
 import { createHash, timingSafeEqual, randomUUID } from "node:crypto";
 import { type Form, QUESTION_TYPES, hasOptions, questionsOf } from "@/lib/form";
 
-// 관리자 기능은 서버에서만. 비밀번호(ADMIN_PASSWORD)가 맞을 때만
-// 서비스 키로 명단/설문을 읽고 고칩니다. (브라우저에는 서비스 키가 가지 않음)
+// 관리자 기능은 서버에서만. 비밀번호가 맞을 때만 서비스 키로 명단/설문을 읽고 고칩니다.
+// (브라우저에는 서비스 키가 가지 않음)
+//  ADMIN_PASSWORD: 전부 / GOODS_PASSWORD: 굿즈 주문(goods* 동작)만, 면담 명단은 못 봄
 const hash = (s: string) => createHash("sha256").update(s).digest();
-const passwordOk = (p: unknown) =>
-  !!process.env.ADMIN_PASSWORD &&
-  typeof p === "string" &&
-  timingSafeEqual(hash(p), hash(process.env.ADMIN_PASSWORD));
+const passwordOk = (p: unknown, secret: string | undefined) =>
+  !!secret && typeof p === "string" && timingSafeEqual(hash(p), hash(secret));
 
 const fail = (error: string) => NextResponse.json({ error }, { status: 400 });
 
 export async function POST(request: Request) {
   const b = await request.json().catch(() => null);
-  if (!passwordOk(b?.password))
+  const allowed =
+    passwordOk(b?.password, process.env.ADMIN_PASSWORD) ||
+    (passwordOk(b?.password, process.env.GOODS_PASSWORD) && String(b?.action).startsWith("goods"));
+  if (!allowed)
     return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
 
   const db = createClient(

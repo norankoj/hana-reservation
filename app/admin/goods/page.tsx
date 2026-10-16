@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { adminApi, savedPassword } from "@/lib/admin";
+import { adminApi, savedPassword, savePassword } from "@/lib/admin";
 import { type Line, total, won, lineLabel, lineError } from "@/lib/goods";
 import { excelRows, fillOrderForm } from "@/lib/xlsx";
-import { ChevronLeft, Copy, Link2, Download, Search, Trash2 } from "lucide-react";
+import { ChevronLeft, Copy, Link2, Download, Search, Trash2, LogOut } from "lucide-react";
 
 type Order = {
   id: number;
@@ -25,23 +25,54 @@ export default function GoodsAdmin() {
   const [tab, setTab] = useState<keyof typeof TABS>("all");
   const [q, setQ] = useState("");
 
-  const load = async (pw: string) => setRows((await adminApi(pw, { action: "goods" })).rows ?? []);
+  // 주문 목록을 받아옴. 비밀번호가 틀리면 false
+  const load = async (pw: string) => {
+    const r = await adminApi(pw, { action: "goods" });
+    if (r.status === 401) return false;
+    setRows(r.rows ?? []);
+    return true;
+  };
 
   useEffect(() => {
-    // 로그인은 /admin 에서 (같은 탭에 비밀번호가 기억됨)
+    // 관리자 비밀번호 또는 굿즈 전용 비밀번호. 같은 탭에서는 기억됨
     const pw = savedPassword();
-    if (!pw) return void (location.href = "/admin");
+    // load 는 서버 응답을 기다린 뒤에 state 를 바꾸므로 괜찮음
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setPassword(pw);
-    load(pw);
+    if (pw) load(pw).then((ok) => ok && setPassword(pw));
   }, []);
 
-  const run = async (body: object) => {
-    if (!password) return;
-    const res = await adminApi(password, body);
-    if (res.error) alert("처리 중 오류가 발생했습니다.");
-    load(password);
+  const login = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const pw = String(new FormData(e.currentTarget).get("password"));
+    if (!(await load(pw))) return alert("비밀번호가 맞지 않습니다.");
+    savePassword(pw);
+    setPassword(pw);
   };
+
+  const logout = () => {
+    savePassword(null);
+    setPassword(null);
+    setRows([]);
+  };
+
+  // 화면을 먼저 바꾸고 서버에 저장. 실패했을 때만 목록을 다시 받아와 되돌림
+  // (예전엔 저장 + 목록 다시 받기를 기다린 뒤에야 체크가 바뀌어서 버벅였음)
+  const run = async (body: object, apply: (rs: Order[]) => Order[]) => {
+    if (!password) return;
+    setRows(apply);
+    const res = await adminApi(password, body);
+    if (res.error || res.status !== 200) {
+      alert("저장하지 못했습니다. 다시 시도해 주세요.");
+      load(password);
+    }
+  };
+
+  const setPaid = (o: Order, paid: boolean) =>
+    run({ action: "goodsPaid", id: o.id, paid }, (rs) => rs.map((r) => (r.id === o.id ? { ...r, paid } : r)));
+
+  const remove = (o: Order) =>
+    confirm(`${o.name}님의 주문을 삭제할까요?`) &&
+    run({ action: "goodsDelete", id: o.id }, (rs) => rs.filter((r) => r.id !== o.id));
 
   const paid = rows.filter((r) => r.paid);
   const unpaid = rows.filter((r) => !r.paid);
@@ -75,6 +106,17 @@ export default function GoodsAdmin() {
 
   const btn = "flex items-center gap-1.5 text-sm font-bold px-3 py-2 rounded-lg transition active:scale-[0.98]";
 
+  if (!password)
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <form onSubmit={login} className="bg-white p-8 rounded-[20px] shadow-card-lg w-full max-w-sm space-y-4">
+          <h1 className="text-2xl font-bold text-center mb-2">굿즈 주문 관리</h1>
+          <input name="password" type="password" placeholder="비밀번호" required className="w-full border-2 border-gray-200 rounded-xl p-3 outline-none focus:border-brand" />
+          <button className="w-full bg-brand text-white font-bold py-3 rounded-xl hover:bg-brand-dark transition">로그인</button>
+        </form>
+      </div>
+    );
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-3 sticky top-0 z-10">
@@ -96,6 +138,9 @@ export default function GoodsAdmin() {
             </button>
             <button onClick={download} disabled={paid.length === 0} className={`${btn} text-white bg-brand hover:bg-brand-dark disabled:bg-gray-300`}>
               <Download size={16} /> 주문서 다운로드
+            </button>
+            <button onClick={logout} aria-label="로그아웃" className={`${btn} text-gray-600 hover:bg-gray-100`}>
+              <LogOut size={16} />
             </button>
           </div>
         </div>
@@ -154,7 +199,7 @@ export default function GoodsAdmin() {
                   <tr key={o.id} className={`align-top ${o.paid ? "" : "bg-amber-50/40"}`}>
                     <td className="px-3 py-2.5">
                       <label className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg font-bold cursor-pointer whitespace-nowrap ${o.paid ? "bg-brand-soft text-brand" : "bg-amber-100 text-amber-700"}`}>
-                        <input type="checkbox" checked={o.paid} onChange={(e) => run({ action: "goodsPaid", id: o.id, paid: e.target.checked })} className="w-4 h-4 accent-brand" />
+                        <input type="checkbox" checked={o.paid} onChange={(e) => setPaid(o, e.target.checked)} className="w-4 h-4 accent-brand" />
                         {o.paid ? "확인" : "미입금"}
                       </label>
                     </td>
@@ -184,7 +229,7 @@ export default function GoodsAdmin() {
                     <td className="px-2 py-2.5">
                       <button
                         aria-label="주문 삭제"
-                        onClick={() => confirm(`${o.name}님의 주문을 삭제할까요?`) && run({ action: "goodsDelete", id: o.id })}
+                        onClick={() => remove(o)}
                         className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50"
                       >
                         <Trash2 size={16} />
