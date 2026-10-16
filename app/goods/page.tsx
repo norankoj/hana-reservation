@@ -259,7 +259,7 @@ export default function GoodsPage() {
                   <dl className="mt-3 space-y-4">
                     <div>
                       <dt className="font-bold">Q. 개인으로도 주문할 수 있나요?</dt>
-                      <dd className="text-gray-700 mt-0.5">A. 이번 주문은 공동체 단위로만 받아요. 이 페이지에서 주문하시면 공동체 담당자가 모아서 한 번에 신청해요.</dd>
+                      <dd className="text-gray-700 mt-0.5">A. 이번 주문은 공동체 단위로만 받아요. 이 페이지에서 주문하시면 담당자(노나연)가 모아서 한 번에 신청해요.</dd>
                     </div>
                     <div>
                       <dt className="font-bold">Q. 사이즈가 고민돼요.</dt>
@@ -267,7 +267,7 @@ export default function GoodsPage() {
                     </div>
                     <div>
                       <dt className="font-bold">Q. 주문한 뒤에 수량을 바꿀 수 있나요?</dt>
-                      <dd className="text-gray-700 mt-0.5">A. 주문 마감인 {deadline}까지는 공동체 담당자에게 말씀해 주세요. 마감 이후에는 변경이 어려워요.</dd>
+                      <dd className="text-gray-700 mt-0.5">A. 주문 마감인 {deadline}까지는 담당자(노나연)에게 말씀해 주세요. 마감 이후에는 변경이 어려워요.</dd>
                     </div>
                   </dl>
                 </div>
