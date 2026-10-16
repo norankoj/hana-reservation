@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { slotLabel, questionsOf } from "./form.ts";
 import { formatPhone } from "./phone.ts";
+import { unitPrice, lineError, addLine, total, excelRows } from "./goods.ts";
 
 assert.deepEqual(slotLabel("2026-10-14 15:00"), { date: "10월 14일 (수)", time: "오후 3시" });
 assert.equal(slotLabel("2026-11-07 09:30").time, "오전 9시 30분");
@@ -16,5 +17,19 @@ assert.equal(qs[1].type, "radio");
 
 assert.equal(formatPhone("01012345678"), "010-1234-5678");
 assert.equal(formatPhone("010-1234-"), "010-123-4");
+
+// 굿즈: 엑셀(상품표)과 같은 할인가, 세트/사이즈 검사, 엑셀 붙여넣기 줄
+assert.equal(unitPrice("후드집업 - 그레이"), 46800);
+assert.equal(unitPrice("네임택 - 웨이브"), 4050);
+assert.equal(unitPrice("올인원 세트"), 28800);
+const set = { item: "올인원 세트", bandana: "레드 웨이브", bag: "화이트", keyring: "1 스탬프", qty: 1 };
+assert.equal(lineError(set), null);
+assert.equal(lineError({ ...set, bag: undefined }), "세트 구성 확인");
+assert.equal(lineError({ item: "후드집업 - 블랙", size: "XS", qty: 1 }), "사이즈 확인");
+assert.equal(lineError({ item: "스티커팩", qty: 2 }), null);
+const lines = addLine(addLine([], { item: "스티커팩", qty: 1 }), { item: "스티커팩", qty: 2 });
+assert.deepEqual(lines, [{ item: "스티커팩", qty: 3 }]);
+assert.equal(total([...lines, set]), 2700 * 3 + 28800);
+assert.equal(excelRows([{ name: "홍길동", items: [set] }]), "홍길동\t올인원 세트\t\t레드 웨이브\t화이트\t1 스탬프\t1");
 
 console.log("✅ lib 검증 통과");

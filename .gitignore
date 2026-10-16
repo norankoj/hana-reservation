@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 굿즈 사진 원본 (public/goods 에 복사해 씀)
+/일본더비/

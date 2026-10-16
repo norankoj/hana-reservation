@@ -102,6 +102,22 @@ export async function POST(request: Request) {
       return error ? fail("INVALID") : NextResponse.json({ ok: true, id: f.id });
     }
 
+    // 굿즈 주문 (/admin/goods)
+    case "goods": {
+      const { data } = await db.from("goods_orders").select("*").order("created_at");
+      return NextResponse.json({ rows: data ?? [] });
+    }
+
+    case "goodsPaid": {
+      const { error } = await db.from("goods_orders").update({ paid: !!b.paid }).eq("id", b.id);
+      return error ? fail("ERROR") : NextResponse.json({ ok: true });
+    }
+
+    case "goodsDelete": {
+      const { error } = await db.from("goods_orders").delete().eq("id", b.id);
+      return error ? fail("ERROR") : NextResponse.json({ ok: true });
+    }
+
     // 설문 삭제 (예약/응답도 함께 삭제됨)
     case "delete": {
       const { error } = await forms().delete().eq("id", formId);
