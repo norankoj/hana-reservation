@@ -114,7 +114,8 @@ export default function GoodsPage() {
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={p.imgs[0]} alt={p.title} className="w-full aspect-square object-contain rounded-xl bg-gray-50" />
                         <span className="block mt-1 text-sm font-bold leading-tight">{p.title}</span>
-                        <span className="block text-xs font-semibold text-brand">{won(unitPrice(p.items[0]))}</span>
+                        <span className="block text-xs text-gray-400 line-through">{won(p.price)}</span>
+                        <span className="block text-xs font-bold text-brand">{won(unitPrice(p.items[0]))}</span>
                       </a>
                     </li>
                   ))}
