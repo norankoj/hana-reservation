@@ -7,8 +7,9 @@ import { type Form, QUESTION_TYPES, hasOptions, questionsOf } from "@/lib/form";
 // (브라우저에는 서비스 키가 가지 않음)
 //  ADMIN_PASSWORD: 전부 / GOODS_PASSWORD: 굿즈 주문(goods* 동작)만, 면담 명단은 못 봄
 const hash = (s: string) => createHash("sha256").update(s).digest();
+// 앞뒤 공백은 무시 (Vercel 에 값을 붙여넣다 공백·줄바꿈이 섞여도 로그인되도록)
 const passwordOk = (p: unknown, secret: string | undefined) =>
-  !!secret && typeof p === "string" && timingSafeEqual(hash(p), hash(secret));
+  !!secret?.trim() && typeof p === "string" && timingSafeEqual(hash(p.trim()), hash(secret.trim()));
 
 const fail = (error: string) => NextResponse.json({ error }, { status: 400 });
 
