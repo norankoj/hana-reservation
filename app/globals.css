@@ -67,6 +67,21 @@ body {
   }
 }
 
+/* 결혼식 버스 페이지: 신랑신부 누끼가 둥실 떠 있음 */
+@keyframes bob {
+  50% {
+    transform: translateY(-8px) rotate(-1.5deg);
+  }
+}
+@utility animate-bob {
+  animation: bob 3s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-bob {
+    animation: none;
+  }
+}
+
 @utility pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }
