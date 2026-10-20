@@ -9,7 +9,7 @@ import { today } from "@/lib/form";
 // 결혼식 버스 신청. 굿즈·면담과 다르게 청첩장 느낌(아이보리 + 명조)으로.
 const serif = Noto_Serif_KR({ weight: ["400", "600"], preload: false });
 
-const DEADLINE = "2026-10-26"; // DB 정책 supabase/bus.sql 과 같게
+const DEADLINE = "2026-11-01"; // DB 정책 supabase/bus.sql 과 같게
 const LETTER = "https://salondeletter.com/w/x9dy9cwsmy";
 const ROUTES = ["왕복", "가는 편만", "오는 편만"] as const;
 const field =
@@ -123,7 +123,7 @@ export default function BusPage() {
               </fieldset>
               <label className="block space-y-1.5">
                 <span className="block text-[15px] font-bold">남기실 말 <span className="font-normal text-[#8f857b]">(선택)</span></span>
-                <input name="memo" maxLength={200} placeholder="예: 출발 시간에 조금 늦을 수 있어요" className={field} />
+                <input name="memo" maxLength={200} className={field} />
               </label>
               <button
                 type="submit" disabled={isLoading}
@@ -131,7 +131,7 @@ export default function BusPage() {
               >
                 {isLoading ? "신청 중입니다..." : "신청하기"}
               </button>
-              <p className="text-center text-[13px] text-[#8f857b]">10월 26일 (월)까지 신청받아요</p>
+              <p className="text-center text-[13px] text-[#8f857b]">11월 1일 (주일)까지 신청받아요</p>
             </form>
           )}
 

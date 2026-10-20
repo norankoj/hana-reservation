@@ -14,8 +14,8 @@ create table if not exists public.bus_signups (
 
 alter table public.bus_signups enable row level security;
 
--- 신청은 누구나 10/26 까지 (한국 시간). 조회·삭제는 관리자 페이지가 서버(api/admin)에서 서비스 키로만.
+-- 신청은 누구나 11/1 까지 (한국 시간). 조회·삭제는 관리자 페이지가 서버(api/admin)에서 서비스 키로만.
 drop policy if exists "누구나 신청" on public.bus_signups;
 create policy "누구나 신청" on public.bus_signups
   for insert to anon, authenticated
-  with check ((now() at time zone 'Asia/Seoul')::date <= date '2026-10-26');
+  with check ((now() at time zone 'Asia/Seoul')::date <= date '2026-11-01');
