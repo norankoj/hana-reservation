@@ -9,6 +9,7 @@ import {
   unitPrice, total, won, lineLabel, addLine, tossLink,
 } from "@/lib/goods";
 import Select from "./Select";
+import Closed from "./Closed";
 import { Clock, CheckCircle2, Plus, X, ShoppingBag, Percent, Copy, Send } from "lucide-react";
 
 const field =
@@ -23,7 +24,12 @@ export default function GoodsPage() {
   const [done, setDone] = useState<{ name: string; depositor: string; lines: Line[] } | null>(null);
   const [qtys, setQtys] = useState<Record<string, number>>({}); // 상품 카드별로 고른 수량 (담기 버튼 금액용)
   const [detail, setDetail] = useState<number | null>(null); // 모아보기에서 연 상품 상세
-  const ended = today() > GOODS_DEADLINE;
+  // 마감 여부는 보는 기기 날짜로 (페이지가 미리 만들어져 있어서 열 때 판단). 최종 판정은 DB.
+  const [ended, setEnded] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setEnded(today() > GOODS_DEADLINE);
+  }, []);
 
   // 상세가 열려 있으면 뒤 페이지는 스크롤 안 되게
   useEffect(() => {
@@ -52,8 +58,13 @@ export default function GoodsPage() {
     setIsLoading(true);
     const { error } = await supabase.from("goods_orders").insert({ name, phone, depositor, items: lines });
     setIsLoading(false);
+    // 페이지를 열어 둔 채 자정이 지나면 DB 가 막음 → 마감 화면으로
+    if (error?.code === "42501") {
+      alert("주문이 마감되었습니다.");
+      return setEnded(true);
+    }
     if (error)
-      return alert(error.code === "42501" ? "주문이 마감되었습니다." : error.code === "23514" ? "입력하신 내용을 다시 확인해 주세요. (연락처 11자리 등)" : "주문 중 오류가 발생했습니다.\n잠시 후 다시 시도해 주세요.");
+      return alert(error.code === "23514" ? "입력하신 내용을 다시 확인해 주세요. (연락처 11자리 등)" : "주문 중 오류가 발생했습니다.\n잠시 후 다시 시도해 주세요.");
     setDone({ name, depositor, lines });
     setLines([]);
     setPhone("");
@@ -79,7 +90,7 @@ export default function GoodsPage() {
           <p className="text-[13px] font-bold opacity-90">2026 PROMISED LAND JAPAN IN OITA</p>
           <h1 className="text-[28px] md:text-3xl font-extrabold tracking-[-0.03em] mt-1">굿즈 단체주문</h1>
           <span className="inline-flex items-center gap-1.5 mt-3 text-[13px] font-semibold bg-white/20 px-3 py-1.5 rounded-full">
-            <Clock size={13} /> 주문·입금 마감 {deadline}까지
+            <Clock size={13} /> {ended ? "주문이 마감되었어요" : `주문·입금 마감 ${deadline}까지`}
           </span>
         </div>
 
@@ -166,7 +177,7 @@ export default function GoodsPage() {
               </button>
             </div>
           ) : ended ? (
-            <div className="bg-white p-8 rounded-2xl text-center text-lg font-bold text-gray-500 shadow-card">주문이 마감되었습니다.</div>
+            <Closed />
           ) : (
             <>
               <section className="bg-white rounded-[20px] shadow-card p-5 md:p-6">

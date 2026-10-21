@@ -5,7 +5,7 @@ import Link from "next/link";
 import { adminApi, savedPassword, savePassword } from "@/lib/admin";
 import { type Line, total, won, lineLabel, lineError } from "@/lib/goods";
 import { excelRows, fillOrderForm } from "@/lib/xlsx";
-import { ChevronLeft, Copy, Link2, Download, Search, Trash2, LogOut } from "lucide-react";
+import { ChevronLeft, Copy, Link2, Download, Search, Trash2, LogOut, MessageCircle } from "lucide-react";
 
 type Order = {
   id: number;
@@ -17,6 +17,9 @@ type Order = {
   created_at: string;
 };
 
+// 마감 후 /goods 에서 남긴 문의
+type Inquiry = { id: number; name: string; phone: string; message: string; created_at: string };
+
 const TABS = { all: "전체", unpaid: "미입금", paid: "입금 확인" } as const;
 
 export default function GoodsAdmin() {
@@ -24,12 +27,14 @@ export default function GoodsAdmin() {
   const [rows, setRows] = useState<Order[]>([]);
   const [tab, setTab] = useState<keyof typeof TABS>("all");
   const [q, setQ] = useState("");
+  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
 
   // 주문 목록을 받아옴. 비밀번호가 틀리면 false
   const load = async (pw: string) => {
     const r = await adminApi(pw, { action: "goods" });
     if (r.status === 401) return false;
     setRows(r.rows ?? []);
+    setInquiries((await adminApi(pw, { action: "goodsInquiries" })).rows ?? []);
     return true;
   };
 
@@ -243,6 +248,28 @@ export default function GoodsAdmin() {
               <p className="text-center py-16 text-gray-400 font-bold">{rows.length ? "조건에 맞는 주문이 없습니다." : "아직 주문이 없습니다."}</p>
             )}
           </div>
+        </section>
+
+        <section className="bg-white rounded-2xl shadow-card overflow-hidden">
+          <h2 className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 font-bold">
+            <MessageCircle size={18} className="text-brand" /> 문의 <span className="text-brand tabular-nums">{inquiries.length}</span>건
+          </h2>
+          {inquiries.length === 0 ? (
+            <p className="text-center py-10 text-gray-400 font-bold">아직 문의가 없습니다.</p>
+          ) : (
+            <ul className="divide-y divide-gray-100">
+              {inquiries.map((m) => (
+                <li key={m.id} className="px-4 py-3">
+                  <p className="flex flex-wrap items-center gap-x-3 text-sm">
+                    <b className="text-base">{m.name}</b>
+                    <a href={`tel:${m.phone}`} className="text-gray-600 hover:text-brand tabular-nums">{m.phone}</a>
+                    <span className="text-gray-400 tabular-nums">{new Date(m.created_at).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}</span>
+                  </p>
+                  <p className="mt-1 text-[15px] leading-relaxed whitespace-pre-wrap">{m.message}</p>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       </main>
     </div>

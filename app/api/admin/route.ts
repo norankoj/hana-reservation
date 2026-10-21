@@ -111,6 +111,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ rows: data ?? [] });
     }
 
+    case "goodsInquiries": {
+      const { data } = await db.from("goods_inquiries").select("*").order("created_at", { ascending: false });
+      return NextResponse.json({ rows: data ?? [] });
+    }
+
     case "goodsPaid": {
       const { error } = await db.from("goods_orders").update({ paid: !!b.paid }).eq("id", b.id);
       return error ? fail("ERROR") : NextResponse.json({ ok: true });
