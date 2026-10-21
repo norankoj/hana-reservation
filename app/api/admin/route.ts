@@ -132,6 +132,17 @@ export async function POST(request: Request) {
       return error ? fail("ERROR") : NextResponse.json({ ok: true });
     }
 
+    // 오이타 현장 STAFF 신청 (/admin/staff)
+    case "staff": {
+      const { data } = await db.from("staff_signups").select("*").order("created_at");
+      return NextResponse.json({ rows: data ?? [] });
+    }
+
+    case "staffDelete": {
+      const { error } = await db.from("staff_signups").delete().eq("id", b.id);
+      return error ? fail("ERROR") : NextResponse.json({ ok: true });
+    }
+
     // 설문 삭제 (예약/응답도 함께 삭제됨)
     case "delete": {
       const { error } = await forms().delete().eq("id", formId);
