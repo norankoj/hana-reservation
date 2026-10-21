@@ -17,8 +17,7 @@ drop policy if exists "누구나 문의" on public.goods_inquiries;
 create policy "누구나 문의" on public.goods_inquiries
   for insert to anon, authenticated with check (true);
 
--- 2. 본인 확인용 입금 확인 목록. 이름은 가운데를 가리고(노*연) 연락처는 끝 4자리만.
---    전체 이름·번호·입금자명은 밖으로 나가지 않음.
+-- 2. 본인 확인용 입금 확인 목록. 이름 + 연락처 끝 4자리만 (전체 번호·입금자명은 밖으로 안 나감)
 create or replace function public.goods_paid_list()
 returns table (name text, phone4 text, items jsonb)
 language sql
@@ -26,8 +25,7 @@ security definer
 set search_path = public
 as $$
   select
-    case when char_length(o.name) <= 2 then left(o.name, 1) || '*'
-         else left(o.name, 1) || repeat('*', char_length(o.name) - 2) || right(o.name, 1) end,
+    o.name,
     right(o.phone, 4),
     o.items
   from public.goods_orders o

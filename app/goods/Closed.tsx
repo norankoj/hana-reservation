@@ -41,10 +41,9 @@ export default function Closed() {
     setSent(true);
   };
 
-  // 전체 이름(노나연 → 노*연), 이름 앞부분, 연락처 끝번호로 찾기
+  // 이름 일부나 연락처 끝번호로 찾기
   const word = q.trim();
-  const fullName = (p: Paid) => word.length === p.name.length && [...p.name].every((c, i) => c === "*" || c === word[i]);
-  const shown = (paid ?? []).filter((p) => !word || fullName(p) || p.name.startsWith(word) || p.phone4.includes(word));
+  const shown = (paid ?? []).filter((p) => !word || p.name.includes(word) || p.phone4.includes(word));
 
   return (
     <div className="space-y-4">
@@ -73,10 +72,11 @@ export default function Closed() {
         ) : shown.length === 0 ? (
           <p className="py-12 text-center text-gray-400 font-bold">{paid.length ? "찾는 이름이 없어요. 아래에 문의를 남겨 주세요." : "아직 입금 확인된 주문이 없어요."}</p>
         ) : (
-          <ul className="divide-y divide-gray-100">
+          // 사람이 많아서 이 칸 안에서만 스크롤
+          <ul className="divide-y divide-gray-100 max-h-[60vh] overflow-y-auto overscroll-contain">
             {shown.map((p, i) => (
               <li key={i} className="flex gap-4 px-4 py-3">
-                <div className="w-20 shrink-0">
+                <div className="w-24 shrink-0 break-keep">
                   <p className="font-bold flex items-center gap-1"><CheckCircle2 size={15} className="text-brand" /> {p.name}</p>
                   <p className="text-[13px] text-gray-500 tabular-nums">끝번호 {p.phone4}</p>
                 </div>
@@ -119,7 +119,7 @@ export default function Closed() {
             </label>
             <label className="block space-y-2">
               <span className="block font-bold text-gray-700 ml-1">문의 내용</span>
-              <textarea name="message" required maxLength={1000} placeholder="예: 입금했는데 목록에 없어요 / 사이즈를 잘못 골랐어요" className={`${field} h-32 resize-none`} />
+              <textarea name="message" required maxLength={1000} placeholder="예: 입금했는데 목록에 없어요" className={`${field} h-32 resize-none`} />
             </label>
             <button
               type="submit" disabled={sending}
