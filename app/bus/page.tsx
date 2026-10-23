@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Noto_Serif_KR } from "next/font/google";
 import { supabase } from "@/lib/supabase";
 import { formatPhone } from "@/lib/phone";
@@ -12,6 +12,9 @@ const serif = Noto_Serif_KR({ weight: ["400", "600"], preload: false });
 const DEADLINE = "2026-11-01"; // DB 정책 supabase/bus.sql 과 같게
 const LETTER = "https://salondeletter.com/w/x9dy9cwsmy";
 const ROUTES = ["왕복", "가는 편만", "오는 편만"] as const;
+type Left = { go: number; back: number }; // 가는 편·오는 편 남은 자리 (24석)
+// 그 탑승으로 신청할 자리가 있는지
+const open = (r: string, l: Left) => (r === "오는 편만" || l.go > 0) && (r === "가는 편만" || l.back > 0);
 const field =
   "w-full border border-[#e4dccf] rounded-xl px-4 py-3.5 text-[17px] outline-none bg-white focus:border-[#b08d6e] transition";
 
@@ -19,7 +22,19 @@ export default function BusPage() {
   const [phone, setPhone] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [done, setDone] = useState<{ name: string; route: string } | null>(null);
+  const [left, setLeft] = useState<Left | null>(null);
   const ended = today() > DEADLINE;
+
+  // 남은 자리 (DB 함수 bus_left). 신청 뒤에도 다시 받음
+  const loadLeft = async () => {
+    const { data } = await supabase.rpc("bus_left");
+    if (data?.[0]) setLeft(data[0]);
+  };
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadLeft();
+  }, []);
+  const full = left !== null && left.go <= 0 && left.back <= 0;
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -34,8 +49,9 @@ export default function BusPage() {
     setIsLoading(true);
     const { error } = await supabase.from("bus_signups").insert(row);
     setIsLoading(false);
+    loadLeft();
     if (error)
-      return alert(error.code === "42501" ? "신청이 마감되었습니다." : error.code === "23514" ? "입력하신 내용을 다시 확인해 주세요. (연락처 11자리 등)" : "신청 중 오류가 발생했습니다.\n잠시 후 다시 시도해 주세요.");
+      return alert(error.code === "42501" ? "신청이 마감되었거나 자리가 모두 찼습니다." : error.code === "23514" ? "입력하신 내용을 다시 확인해 주세요. (연락처 11자리 등)" : "신청 중 오류가 발생했습니다.\n잠시 후 다시 시도해 주세요.");
     setDone(row);
     setPhone("");
     window.scrollTo(0, 0);
@@ -65,15 +81,21 @@ export default function BusPage() {
         <div className="px-5 pt-8 pb-12 space-y-5">
           {/* 버스 시간표 */}
           <section className="bg-white rounded-2xl border border-[#ece4d8] px-5 py-1 divide-y divide-[#f0eae0]">
-            {[
-              ["가는 편", "오전 11:30", "교육관 주차장", "서울대 이라운지"],
-              ["오는 편", "오후 4:00", "서울대 이라운지", "교육관 주차장"],
-            ].map(([label, time, from, to]) => (
+            {([
+              ["가는 편", "오전 11:30", "교육관 주차장", "서울대 이라운지", left?.go],
+              ["오는 편", "오후 4:00", "서울대 이라운지", "교육관 주차장", left?.back],
+            ] as const).map(([label, time, from, to, n]) => (
               <div key={label} className="flex items-center gap-4 py-4">
                 <span className="w-14 shrink-0 text-[13px] font-bold text-[#b08d6e]">{label}</span>
-                <div>
+                <div className="flex-1">
                   <p className={`${serif.className} text-[22px] font-semibold tabular-nums`}>{time}</p>
                   <p className="text-[14px] text-[#6b625a]">{from} 출발 → {to}</p>
+                  {/* 4자리 남았을 때부터 알림 */}
+                  {n !== undefined && n <= 4 && (
+                    <span className="inline-block mt-1.5 rounded-full bg-[#fbeee6] px-2.5 py-1 text-[12px] font-bold text-[#c0603a]">
+                      {n > 0 ? `${n}자리 남았습니다` : "마감"}
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
@@ -91,8 +113,10 @@ export default function BusPage() {
                 한 명 더 신청하기
               </button>
             </section>
-          ) : ended ? (
-            <p className="bg-white rounded-2xl border border-[#ece4d8] p-8 text-center font-bold text-[#8f857b]">신청이 마감되었습니다.</p>
+          ) : ended || full ? (
+            <p className="bg-white rounded-2xl border border-[#ece4d8] p-8 text-center font-bold text-[#8f857b]">
+              {ended ? "신청이 마감되었습니다." : "자리가 모두 찼습니다. 신청이 마감되었습니다."}
+            </p>
           ) : (
             <form onSubmit={submit} className="bg-white rounded-2xl border border-[#ece4d8] p-5 space-y-5">
               <h2 className={`${serif.className} text-xl font-semibold`}>버스 탑승 신청</h2>
@@ -108,13 +132,18 @@ export default function BusPage() {
                   onChange={(e) => setPhone(formatPhone(e.target.value))} required placeholder="010-1234-5678" className={field}
                 />
               </label>
-              <fieldset className="space-y-1.5">
+              {/* 자리 수가 바뀌면 다시 그려서, 자리 있는 첫 탑승을 골라 둠 */}
+              <fieldset key={JSON.stringify(left)} className="space-y-1.5">
                 <legend className="text-[15px] font-bold mb-1.5">탑승</legend>
                 <div className="grid grid-cols-3 gap-2">
                   {ROUTES.map((r) => (
-                    <label key={r} className="cursor-pointer">
-                      <input type="radio" name="route" value={r} defaultChecked={r === "왕복"} className="peer sr-only" />
-                      <span className="block text-center py-3 rounded-xl border border-[#e4dccf] font-semibold peer-checked:bg-[#3b342e] peer-checked:text-white peer-checked:border-[#3b342e] peer-focus-visible:ring-2 peer-focus-visible:ring-[#b08d6e] transition">
+                    <label key={r} className="cursor-pointer has-[:disabled]:cursor-not-allowed">
+                      <input
+                        type="radio" name="route" value={r} required className="peer sr-only"
+                        disabled={!!left && !open(r, left)}
+                        defaultChecked={r === (left ? ROUTES.find((x) => open(x, left)) : "왕복")}
+                      />
+                      <span className="block text-center py-3 rounded-xl border border-[#e4dccf] font-semibold peer-checked:bg-[#3b342e] peer-checked:text-white peer-checked:border-[#3b342e] peer-focus-visible:ring-2 peer-focus-visible:ring-[#b08d6e] peer-disabled:text-[#c9c0b6] peer-disabled:line-through transition">
                         {r}
                       </span>
                     </label>

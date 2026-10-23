@@ -80,8 +80,8 @@ export default function BusAdmin() {
         <section className="grid grid-cols-3 gap-2 md:gap-3">
           {[
             ["신청", `${rows.length}건`],
-            ["가는 편 (11:30)", `${count("가는 편만")}명`],
-            ["오는 편 (16:00)", `${count("오는 편만")}명`],
+            ["가는 편 (11:30)", `${count("가는 편만")} / 24명`],
+            ["오는 편 (16:00)", `${count("오는 편만")} / 24명`],
           ].map(([label, v]) => (
             <div key={label} className="bg-white rounded-2xl shadow-card px-4 py-3">
               <p className="text-[13px] font-semibold text-gray-500">{label}</p>
