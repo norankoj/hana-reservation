@@ -81,21 +81,15 @@ export default function BusPage() {
         <div className="px-5 pt-8 pb-12 space-y-5">
           {/* 버스 시간표 */}
           <section className="bg-white rounded-2xl border border-[#ece4d8] px-5 py-1 divide-y divide-[#f0eae0]">
-            {([
-              ["가는 편", "오전 11:30", "교육관 주차장", "서울대 이라운지", left?.go],
-              ["오는 편", "오후 4:00", "서울대 이라운지", "교육관 주차장", left?.back],
-            ] as const).map(([label, time, from, to, n]) => (
+            {[
+              ["가는 편", "오전 11:30", "교육관 주차장", "서울대 이라운지"],
+              ["오는 편", "오후 4:00", "서울대 이라운지", "교육관 주차장"],
+            ].map(([label, time, from, to]) => (
               <div key={label} className="flex items-center gap-4 py-4">
                 <span className="w-14 shrink-0 text-[13px] font-bold text-[#b08d6e]">{label}</span>
-                <div className="flex-1">
+                <div>
                   <p className={`${serif.className} text-[22px] font-semibold tabular-nums`}>{time}</p>
                   <p className="text-[14px] text-[#6b625a]">{from} 출발 → {to}</p>
-                  {/* 4자리 남았을 때부터 알림 */}
-                  {n !== undefined && n <= 4 && (
-                    <span className="inline-block mt-1.5 rounded-full bg-[#fbeee6] px-2.5 py-1 text-[12px] font-bold text-[#c0603a]">
-                      {n > 0 ? `${n}자리 남았습니다` : "마감"}
-                    </span>
-                  )}
                 </div>
               </div>
             ))}
@@ -119,7 +113,21 @@ export default function BusPage() {
             </p>
           ) : (
             <form onSubmit={submit} className="bg-white rounded-2xl border border-[#ece4d8] p-5 space-y-5">
-              <h2 className={`${serif.className} text-xl font-semibold`}>버스 탑승 신청</h2>
+              <div className="flex items-start justify-between gap-2">
+                <h2 className={`${serif.className} text-xl font-semibold`}>버스 탑승 신청</h2>
+                {/* 4자리 남았을 때부터 알림 */}
+                <div className="space-y-0.5 pt-1">
+                  {left &&
+                    ([["가는 편", left.go], ["오는 편", left.back]] as const)
+                      .filter(([, n]) => n <= 4)
+                      .map(([label, n]) => (
+                        <p key={label} className="flex items-center justify-end gap-1.5 text-[13px] font-bold text-[#c0603a]">
+                          <span className={`size-1.5 rounded-full bg-[#c0603a] ${n > 0 ? "animate-pulse" : ""}`} />
+                          {label} {n > 0 ? `${n}자리 남았습니다` : "마감"}
+                        </p>
+                      ))}
+                </div>
+              </div>
               <label className="block space-y-1.5">
                 <span className="block text-[15px] font-bold">성함</span>
                 <input name="name" autoComplete="name" maxLength={30} required placeholder="예: 홍길동" className={field} />
