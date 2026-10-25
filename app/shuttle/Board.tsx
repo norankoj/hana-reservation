@@ -5,9 +5,10 @@ import { supabase } from "@/lib/supabase";
 import { Check, Search, Phone } from "lucide-react";
 
 // 셔틀 탑승 명단. 주소 두 개가 이 화면 하나를 씁니다.
-//  /shuttle        도착지에서 보는 현황. 연락처 없는 뷰(shuttle_board) 라 단체방에 올려도 됩니다.
-//  /shuttle/check  버스 담당자용. 「탑승」 버튼 + 전화. 비밀번호 없이 링크만으로 쓰는 대신
-//                  연락처가 보이는 뷰(shuttle_roster) 를 읽으므로 담당자에게만 보내세요.
+//  /shuttle        도착지에서 보는 현황. 전화는 걸 수 있고 탑승 체크는 못 함
+//  /shuttle/check  버스 담당자용. 위에 더해 「탑승」 버튼. 비밀번호 없이 링크만으로
+// 둘 다 연락처가 보이는 뷰(shuttle_roster) 를 읽습니다. 두 링크 모두 단체방에 올리지 말고
+// 필요한 분에게만 보내세요. (연락처를 빼려면 shuttle_board 뷰로 바꾸면 됩니다)
 type Passenger = {
   id: number;
   seq: number;
@@ -16,7 +17,7 @@ type Passenger = {
   route: string;
   go_at: string | null;
   back_at: string | null;
-  phone?: string; // 담당자 화면에서만
+  phone?: string; // 명단에 번호가 없는 분도 있음
 };
 
 const LEGS = {
@@ -42,14 +43,11 @@ export default function Board({ canCheck = false }: { canCheck?: boolean }) {
   const [state, setState] = useState<"loading" | "ok" | "failed">("loading");
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase
-      .from(canCheck ? "shuttle_roster" : "shuttle_board")
-      .select("*")
-      .order("seq");
+    const { data, error } = await supabase.from("shuttle_roster").select("*").order("seq");
     if (error) return setState("failed");
     setRows(data ?? []);
     setState("ok");
-  }, [canCheck]);
+  }, []);
 
   // 첫 로드 + 5초마다. 다른 사람이 체크한 것도 따라옵니다.
   useEffect(() => {
@@ -160,8 +158,11 @@ export default function Board({ canCheck = false }: { canCheck?: boolean }) {
                   {p.affil && (
                     <span className={`text-[13px] font-semibold truncate ${at ? "text-brand/60" : "text-gray-400"}`}>{p.affil}</span>
                   )}
+                  {/* 벳지는 글자 기준선이 아니라 이름 가운데에 (기준선을 맞추면 내려앉음) */}
                   {p.route !== "왕복" && (
-                    <span className="shrink-0 text-[11px] font-bold text-gray-500 bg-gray-100 rounded-full px-2 py-0.5">{p.route}</span>
+                    <span className="shrink-0 self-center text-[11px] font-bold text-gray-500 bg-gray-100 rounded-full px-2 py-0.5 leading-[1.45]">
+                      {p.route}
+                    </span>
                   )}
                 </span>
 
@@ -169,8 +170,8 @@ export default function Board({ canCheck = false }: { canCheck?: boolean }) {
                   <span className="shrink-0 text-[13px] font-bold tabular-nums text-brand">{hhmm(at)}</span>
                 )}
 
-                {/* 안 오신 분께 바로 전화 (명단에 번호가 있는 분만) */}
-                {canCheck && p.phone && (
+                {/* 안 오신 분께 바로 전화. 보기 화면에서도 걸 수 있게 (번호가 있는 분만) */}
+                {p.phone ? (
                   <a
                     href={`tel:${p.phone}`}
                     aria-label={`${p.name} 전화`}
@@ -178,6 +179,8 @@ export default function Board({ canCheck = false }: { canCheck?: boolean }) {
                   >
                     <Phone size={19} />
                   </a>
+                ) : (
+                  <span className="shrink-0 size-12" /> // 번호 없는 분도 줄이 맞도록
                 )}
 
                 {canCheck &&
