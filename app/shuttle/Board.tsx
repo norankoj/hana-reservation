@@ -44,7 +44,8 @@ export default function Board({ canCheck = false }: { canCheck?: boolean }) {
   const [state, setState] = useState<"loading" | "ok" | "failed">("loading");
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase.from("shuttle_roster").select("*").order("seq");
+    // 이름순(가나다). 번호순으로 하면 나중에 추가한 사람이 명단 끝에 붙습니다
+    const { data, error } = await supabase.from("shuttle_roster").select("*").order("name");
     if (error) return setState("failed");
     setRows(data ?? []);
     setState("ok");
