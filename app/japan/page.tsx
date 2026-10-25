@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { info } from "./info";
 import { today } from "@/lib/form";
-import { Phone, MessageCircle, HandHeart, Check } from "lucide-react";
+import { Check } from "lucide-react";
 
 // 일본 집회 참가 안내. /staff 포스터 톤(크림 바탕 + 빨강·남색)으로.
 // 문구·날짜·링크는 전부 ./info.ts 에서 고칩니다.
@@ -32,10 +32,13 @@ function Badge({ children, muted }: { children: React.ReactNode; muted?: boolean
   );
 }
 
-function Section({ id, title, children }: { id?: string; title: string; children: React.ReactNode }) {
+function Section({ id, eyebrow, title, children }: { id?: string; eyebrow: string; title: string; children: React.ReactNode }) {
   return (
     <section id={id} className="scroll-mt-4 bg-white rounded-2xl border-2 border-[#1f2a44]/10 p-5 space-y-4">
-      <h2 className="text-[22px] font-extrabold tracking-tight">{title}</h2>
+      <div>
+        <p className="text-[14px] tracking-[0.25em] font-bold text-[#a8201a]">✦ {eyebrow} ✦</p>
+        <h2 className="mt-0.5 text-[22px] font-extrabold tracking-tight">{title}</h2>
+      </div>
       {children}
     </section>
   );
@@ -109,8 +112,8 @@ export default function JapanPage() {
             </p>
           )}
           <div className="relative mt-6 grid grid-cols-2 gap-2">
-            <a href={info.staffLink} className={btnRed}><HandHeart size={20} /> 스태프 신청</a>
-            <a href={contactHref} className={`${btnLine} text-[#1f2a44]`}><MessageCircle size={20} /> 문의</a>
+            <a href={info.staffLink} className={btnRed}>스태프 신청</a>
+            <a href={contactHref} className={`${btnLine} text-[#1f2a44]`}>문의</a>
           </div>
         </header>
 
@@ -121,7 +124,7 @@ export default function JapanPage() {
           </section>
 
           {/* 2. 핵심 일정 */}
-          <Section id="schedule" title="📌 핵심 일정">
+          <Section id="schedule" eyebrow="SCHEDULE" title="핵심 일정">
             <ol className="relative border-l-2 border-[#a8201a]/30 ml-2 space-y-5">
               {info.timeline.map((t) => (
                 <li key={t.date + t.title} className="relative pl-6">
@@ -135,7 +138,7 @@ export default function JapanPage() {
           </Section>
 
           {/* 3. 나는 어디에 해당? */}
-          <Section title="🙌 참가 방법">
+          <Section eyebrow="HOW TO JOIN" title="참가 방법">
             {apply.length > 0 && (
               <dl className="rounded-xl bg-[#f6eedd] px-4 py-1 divide-y divide-[#1f2a44]/10">
                 {apply.map(([k, v]) => <Row key={k} label={k} value={v} />)}
@@ -158,7 +161,7 @@ export default function JapanPage() {
                 <p className="text-[19px] font-extrabold">단체 항공 예약 참가자</p>
                 <List items={info.group} />
                 <div id="bus" className="scroll-mt-4 rounded-xl bg-white p-4 space-y-2">
-                  <p className="font-extrabold">🚌 인천공항행 버스</p>
+                  <p className="font-extrabold">인천공항행 버스</p>
                   <p>{info.busText}</p>
                   {info.busDeadline && <p><Badge>신청 마감 {info.busDeadline}</Badge></p>}
                   <dl className="divide-y divide-[#1f2a44]/10">
@@ -187,7 +190,7 @@ export default function JapanPage() {
                   <Row label="집회장 이동" value={info.soloTransfer} />
                 </dl>
                 <div id="leader" className="scroll-mt-4 rounded-xl bg-white p-4 space-y-2">
-                  <p className="font-extrabold">👤 팀 담당자 지정</p>
+                  <p className="font-extrabold">팀 담당자 지정</p>
                   <p>{info.leaderText}</p>
                   <dl className="divide-y divide-[#1f2a44]/10">
                     <div className="flex gap-3 py-2.5">
@@ -203,7 +206,7 @@ export default function JapanPage() {
           </Section>
 
           {/* 4. 확인해두면 좋을 것 */}
-          <Section title="📝 확인해두면 좋을 것">
+          <Section eyebrow="CHECKLIST" title="확인해두면 좋을 것">
             <dl className="divide-y divide-[#1f2a44]/10">
               <Row label="여권" value={info.passport} />
               {info.passportCopy && <Row label="여권 사본" value={info.passportCopy} />}
@@ -234,17 +237,17 @@ export default function JapanPage() {
           </Section>
 
           {/* 5. 스태프 모집 */}
-          <Section id="staff" title="❤️ 스태프 모집">
+          <Section id="staff" eyebrow="STAFF" title="스태프 모집">
             {info.staff.map((p) => <p key={p}>{p}</p>)}
             <dl className="rounded-xl bg-[#f6eedd] px-4 py-1">
               <Row label="모집 대상" value={info.staffTarget} />
             </dl>
             <p className="border-l-4 border-[#a8201a] pl-3 font-semibold">{info.staffQuote}</p>
-            <a href={info.staffLink} className={`${btnRed} w-full`}><HandHeart size={20} /> 스태프 신청하기</a>
+            <a href={info.staffLink} className={`${btnRed} w-full`}>스태프 신청하기</a>
           </Section>
 
           {/* 6. 준비 기도모임 */}
-          <Section id="prayer" title="🙏 준비 기도모임">
+          <Section id="prayer" eyebrow="PRAYER" title="준비 기도모임">
             <div className="grid grid-cols-2 gap-2">
               {info.prayerDates.map((d) => (
                 <div key={d} className="rounded-xl bg-[#1f2a44] text-white p-4 text-center">
@@ -258,16 +261,16 @@ export default function JapanPage() {
           </Section>
 
           {/* 7. 문의·긴급 연락처 */}
-          <Section id="contact" title="📞 문의·긴급 연락처">
+          <Section id="contact" eyebrow="CONTACT" title="문의·긴급 연락처">
             <dl className="divide-y divide-[#1f2a44]/10">
               <Row label="문의" value={[info.contactName, info.contactPhone].filter(Boolean).join(" ")} />
               <Row label="현지 긴급" value={[info.emergencyName, info.emergencyPhone].filter(Boolean).join(" ")} />
             </dl>
             {(info.contactPhone || info.contactLink) && (
-              <a href={contactHref} className={`${btnLine} w-full`}><MessageCircle size={20} /> 문의하기</a>
+              <a href={contactHref} className={`${btnLine} w-full`}>문의하기</a>
             )}
             {info.emergencyPhone && (
-              <a href={`tel:${info.emergencyPhone}`} className={`${btnRed} w-full`}><Phone size={20} /> 현지 긴급 전화</a>
+              <a href={`tel:${info.emergencyPhone}`} className={`${btnRed} w-full`}>현지 긴급 전화</a>
             )}
           </Section>
 
@@ -278,8 +281,8 @@ export default function JapanPage() {
       {/* 8. 모바일 하단 고정 버튼 */}
       <nav className="md:hidden fixed inset-x-0 bottom-0 z-20 bg-[#f6eedd]/95 backdrop-blur border-t border-[#1f2a44]/10 px-4 pt-3 pb-safe">
         <div className="grid grid-cols-2 gap-2 pb-3">
-          <a href={info.staffLink} className={btnRed}><HandHeart size={20} /> 스태프 신청</a>
-          <a href={contactHref} className={btnLine}><MessageCircle size={20} /> 문의</a>
+          <a href={info.staffLink} className={btnRed}>스태프 신청</a>
+          <a href={contactHref} className={btnLine}>문의</a>
         </div>
       </nav>
     </div>
