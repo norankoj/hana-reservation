@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { slotLabel, questionsOf } from "./form.ts";
 import { formatPhone } from "./phone.ts";
+import { chosung, matches } from "./hangul.ts";
 import { unitPrice, lineError, addLine, total } from "./goods.ts";
 import { excelRows, fillOrderForm, readZip, unzipText } from "./xlsx.ts";
 import { readFileSync } from "node:fs";
@@ -19,6 +20,18 @@ assert.equal(qs[1].type, "radio");
 
 assert.equal(formatPhone("01012345678"), "010-1234-5678");
 assert.equal(formatPhone("010-1234-"), "010-123-4");
+
+// 셔틀 명단 검색: 초성만 쳐도 찾아짐
+assert.equal(chosung("김선애"), "ㄱㅅㅇ");
+assert.equal(chosung("이현우B"), "ㅇㅎㅇB"); // 동명이인 뒤에 붙는 알파벳은 그대로
+assert.ok(matches("ㄱㅅㅇ", "김선애"));
+assert.ok(matches("ㄱㅅ", "김선애")); // 앞부분만 쳐도
+assert.ok(matches("ㅅㅇ", "김선애")); // 가운데부터 쳐도
+assert.ok(!matches("ㄱㅈ", "김선애"));
+assert.ok(matches("선애", "김선애")); // 글자로 치면 그대로
+assert.ok(matches("", "아무개")); // 빈 검색어는 전부
+assert.ok(matches("UCM", "김세은", "UCM")); // 소속도 검색 대상
+assert.ok(!matches("ㄱㅅㅇ", "UCM")); // 초성 검색이 영문 소속에 잘못 걸리지 않음
 
 // 굿즈: 엑셀(상품표)과 같은 할인가, 세트/사이즈 검사, 엑셀 붙여넣기 줄
 assert.equal(unitPrice("후드집업 - 그레이"), 46800);

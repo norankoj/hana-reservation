@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
+import { matches } from "@/lib/hangul";
 import { Check, Search, Phone } from "lucide-react";
 
 // 셔틀 탑승 명단. 주소 두 개가 이 화면 하나를 씁니다.
@@ -71,11 +72,8 @@ export default function Board({ canCheck = false }: { canCheck?: boolean }) {
 
   const onLeg = rows.filter((p) => rides(p, leg));
   const done = onLeg.filter((p) => boardedAt(p, leg));
-  const list = onLeg.filter(
-    (p) =>
-      (!leftOnly || !boardedAt(p, leg)) &&
-      (!q.trim() || p.name.includes(q.trim()) || p.affil.includes(q.trim())),
-  );
+  // 검색은 초성도 됩니다 (ㄱㅅㅇ → 김선애)
+  const list = onLeg.filter((p) => (!leftOnly || !boardedAt(p, leg)) && matches(q, p.name, p.affil));
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
@@ -123,7 +121,7 @@ export default function Board({ canCheck = false }: { canCheck?: boolean }) {
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="이름 검색"
+              placeholder="이름 검색 (ㄱㅅㅇ 도 됨)"
               className="w-full bg-transparent rounded-[20px] pl-11 pr-3 py-3 font-semibold outline-none placeholder:text-gray-400"
             />
           </label>
