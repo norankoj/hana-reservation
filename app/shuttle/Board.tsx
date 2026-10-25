@@ -113,15 +113,16 @@ export default function Board({ canCheck = false }: { canCheck?: boolean }) {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 pb-10 space-y-2.5">
+      <main className="max-w-2xl mx-auto px-4 pt-3 pb-10 space-y-2.5">
         {/* 검색과 「미탑승만」 한 줄로. (전체·탑승 칩은 탭 숫자와 초록 줄로 이미 보여서 뺐습니다) */}
         <div className="flex gap-2">
-          <label className={`${surface} relative flex-1 bg-white shadow-card focus-within:ring-2 focus-within:ring-brand`}>
+          {/* scroll-mt: 검색창을 누를 때 브라우저가 화면을 끌어올려도 머리글 밑으로 숨지 않도록 */}
+          <label className={`${surface} relative flex-1 scroll-mt-44 bg-white shadow-card focus-within:ring-2 focus-within:ring-brand`}>
             <Search size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="이름 검색 (ㄱㅅㅇ 도 됨)"
+              placeholder="이름 검색 (초성 검색 가능)"
               className="w-full bg-transparent rounded-[20px] pl-11 pr-3 py-3 font-semibold outline-none placeholder:text-gray-400"
             />
           </label>
