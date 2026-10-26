@@ -85,3 +85,28 @@ body {
 @utility pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }
+
+/* 일본 안내 페이지(/japan): 히어로 아래 흐르는 띠(D-day), 스크롤하면 섹션이 올라오며 나타남 */
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .animate-marquee {
+    animation: marquee 30s linear infinite;
+  }
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+  }
+}
