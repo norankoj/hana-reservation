@@ -154,9 +154,12 @@ export default function Board({ canCheck = false }: { canCheck?: boolean }) {
 
                 {/* 이름은 한 줄. 가운데 정렬이 흐트러지지 않게 둘째 줄을 두지 않습니다 */}
                 <span className="min-w-0 flex-1 flex items-baseline gap-1.5">
-                  <span className={`text-[17px] font-bold truncate ${at ? "text-brand-dark" : "text-gray-900"}`}>{p.name}</span>
+                  {/* 이름은 절대 줄이지 않습니다. 자리가 모자라면 소속부터 줄어듭니다 */}
+                  <span className={`shrink-0 whitespace-nowrap text-[17px] font-bold ${at ? "text-brand-dark" : "text-gray-900"}`}>
+                    {p.name}
+                  </span>
                   {p.affil && (
-                    <span className={`text-[13px] font-semibold truncate ${at ? "text-brand/60" : "text-gray-400"}`}>{p.affil}</span>
+                    <span className={`min-w-0 truncate text-[13px] font-semibold ${at ? "text-brand/60" : "text-gray-400"}`}>{p.affil}</span>
                   )}
                   {/* 벳지는 글자 기준선이 아니라 이름 가운데에 (기준선을 맞추면 내려앉음) */}
                   {p.route !== "왕복" && (
