@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Black_Han_Sans } from "next/font/google";
 import { info } from "./info";
 import { today } from "@/lib/form";
+import { BusNotes } from "./FormShell";
 
 // 일본 집회 참가 안내. /staff 포스터 톤(크림 바탕 + 빨강·남색)으로.
 // 문구·날짜·링크는 전부 ./info.ts 에서 고칩니다.
@@ -226,6 +227,7 @@ export default function JapanPage() {
           <section id="bus" className={card}>
             <Title eyebrow="BUS">인천공항행 버스</Title>
             <p className="text-[18px] leading-[1.8] font-bold">{info.busText}</p>
+            <BusNotes items={info.busNotes} className="-mt-2" />
 <dl className="rounded-xl bg-[#f6eedd] px-4 divide-y-2 divide-dashed divide-[#1f2a44]/15">
               {info.busLegs.map((l) => (
                 <div key={l.label} className="flex items-center gap-4 py-4">

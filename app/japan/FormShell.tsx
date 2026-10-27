@@ -8,6 +8,17 @@ export const chip =
 export const submitBtn =
   "w-full bg-[#a8201a] text-white font-bold py-4 rounded-xl text-lg active:scale-[0.98] transition disabled:bg-gray-300";
 
+// 버스 안내처럼 형광펜 없이 **굵게**만 (작은 안내 글씨용)
+export const Bold = ({ text }: { text: string }) =>
+  text.split("**").map((t, i) => (i % 2 ? <b key={i} className="font-bold text-[#1f2a44]">{t}</b> : t));
+
+// 버스 운행 안내 (안내 페이지와 버스 신청 페이지 공통)
+export const BusNotes = ({ items, className = "" }: { items: string[]; className?: string }) => (
+  <div className={`space-y-1 text-[16px] leading-relaxed font-semibold text-[#1f2a44]/80 ${className}`}>
+    {items.map((t) => <p key={t}><Bold text={t} /></p>)}
+  </div>
+);
+
 export function FormShell({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="min-h-[100dvh] bg-[#e9dcc4] flex justify-center md:py-8 text-[#1f2a44] text-[17px] leading-relaxed break-keep">

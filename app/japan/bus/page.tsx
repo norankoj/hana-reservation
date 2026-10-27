@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { formatPhone } from "@/lib/phone";
 import { today } from "@/lib/form";
 import { info } from "../info";
-import { FormShell, field, chip, submitBtn } from "../FormShell";
+import { FormShell, BusNotes, field, chip, submitBtn } from "../FormShell";
 
 // 인천공항행 버스 신청. 단체·개별 항공 누구나. 값은 DB 체크 supabase/japan.sql 과 같게
 const ROUTES = ["왕복", "가는 편만", "오는 편만"] as const;
@@ -58,6 +58,7 @@ export default function JapanBusPage() {
           <span className="w-20 shrink-0 text-[15px] font-bold text-[#a8201a]">차비</span>
           <p className="font-bold">{info.busFare || "편도/왕복 추후 공지"}</p>
         </div>
+        <BusNotes items={info.busNotes} className="py-4" />
       </section>
 
       {done ? (
