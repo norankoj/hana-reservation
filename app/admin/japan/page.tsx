@@ -131,7 +131,7 @@ export default function JapanAdmin() {
           <div className="bg-white rounded-2xl shadow-card overflow-x-auto">
             <table className="w-full min-w-[760px] text-sm">
               <thead className="bg-gray-50 text-[13px] text-gray-500">
-                <tr>{["구분", "이름", "연락처", "셀", "함께 가는 분", "남기실 말", "제출일", ""].map((h) => <th key={h} className="px-3 py-2.5 text-left font-semibold">{h}</th>)}</tr>
+                <tr>{["구분", "이름", "연락처", "셀", "함께 가는 분", "항공편·이동 일정", "제출일", ""].map((h) => <th key={h} className="px-3 py-2.5 text-left font-semibold">{h}</th>)}</tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {team.map((t) => (

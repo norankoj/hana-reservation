@@ -101,8 +101,8 @@ export default function JapanTeamPage() {
             </label>
           )}
           <label className="block space-y-1.5">
-            <span className="block text-[16px] font-bold">남기실 말</span>
-            <span className="block text-[15px] text-[#1f2a44]/70">항공편, 도착 예정 시간 기입!</span>
+            <span className="block text-[16px] font-bold">항공편·이동 일정</span>
+            <span className="block text-[15px] text-[#1f2a44]/70">항공편명, 도착 예정 시간 등 이동 일정을 적어 주세요.</span>
             <textarea name="memo" rows={2} maxLength={300} required placeholder="예: 항공편명, 11/19 15:30 도착" className={field} />
           </label>
           <button type="submit" disabled={isLoading} className={submitBtn}>
