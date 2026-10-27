@@ -82,6 +82,11 @@ body {
   }
 }
 
+/* 누를 수 있는 버튼은 손 모양 커서 (Tailwind 4 는 기본이 화살표) */
+button:not(:disabled) {
+  cursor: pointer;
+}
+
 @utility pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }

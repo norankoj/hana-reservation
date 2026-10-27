@@ -148,6 +148,21 @@ export async function POST(request: Request) {
       return error ? fail("ERROR") : NextResponse.json({ ok: true });
     }
 
+    // 오이타 집회 버스·팀 담당자 (/admin/japan)
+    case "japan": {
+      const [bus, team] = await Promise.all([
+        db.from("japan_bus_signups").select("*").order("created_at"),
+        db.from("japan_team_signups").select("*").order("created_at"),
+      ]);
+      return NextResponse.json({ bus: bus.data ?? [], team: team.data ?? [] });
+    }
+
+    case "japanDelete": {
+      const table = b.kind === "team" ? "japan_team_signups" : "japan_bus_signups";
+      const { error } = await db.from(table).delete().eq("id", b.id);
+      return error ? fail("ERROR") : NextResponse.json({ ok: true });
+    }
+
     // 설문 삭제 (예약/응답도 함께 삭제됨)
     case "delete": {
       const { error } = await forms().delete().eq("id", formId);
