@@ -143,7 +143,7 @@ export default function Board({ canCheck = false }: { canCheck?: boolean }) {
             return (
               <li
                 key={p.id}
-                className={`${surface} flex items-center gap-3 pl-3.5 pr-3 py-2.5 transition-colors ${at ? "bg-brand-soft" : "bg-white shadow-card"}`}
+                className={`${surface} flex items-center gap-2.5 pl-3.5 pr-2.5 py-2.5 transition-colors ${at ? "bg-brand-soft" : "bg-white shadow-card"}`}
               >
                 {/* 탄 사람은 남보라 동그라미. 안 탄 사람은 빈 자리 (한눈에 다름) */}
                 <span
@@ -178,12 +178,12 @@ export default function Board({ canCheck = false }: { canCheck?: boolean }) {
                   <a
                     href={`tel:${p.phone}`}
                     aria-label={`${p.name} 전화`}
-                    className={`shrink-0 size-12 grid place-items-center rounded-xl ${at ? "text-brand/50" : "text-gray-400 hover:text-brand hover:bg-gray-100"}`}
+                    className={`shrink-0 size-11 grid place-items-center rounded-xl ${at ? "text-brand/50" : "text-gray-400 hover:text-brand hover:bg-gray-100"}`}
                   >
                     <Phone size={19} />
                   </a>
                 ) : (
-                  <span className="shrink-0 size-12" /> // 번호 없는 분도 줄이 맞도록
+                  <span className="shrink-0 size-11" /> // 번호 없는 분도 줄이 맞도록
                 )}
 
                 {canCheck &&
@@ -199,7 +199,7 @@ export default function Board({ canCheck = false }: { canCheck?: boolean }) {
                     <button
                       onClick={() => toggle(p)}
                       aria-label={`${p.name} 탑승`}
-                      className="shrink-0 h-12 px-5 rounded-xl text-[16px] font-bold text-white bg-brand hover:bg-brand-dark active:scale-95 transition"
+                      className="shrink-0 h-12 px-4 rounded-xl text-[16px] font-bold text-white bg-brand hover:bg-brand-dark active:scale-95 transition"
                     >
                       탑승
                     </button>
