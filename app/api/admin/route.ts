@@ -13,6 +13,21 @@ const passwordOk = (p: unknown, secret: string | undefined) =>
 
 const fail = (error: string) => NextResponse.json({ error }, { status: 400 });
 
+// 셔틀 명단 한 줄 검사 (/admin/shuttle). 틀린 값은 넣지 않고 되돌립니다
+const SHUTTLE_ROUTES = ["왕복", "출발만", "귀가만"];
+const shuttleRow = (v: { name?: unknown; affil?: unknown; phone?: unknown; route?: unknown }) => {
+  const name = String(v?.name ?? "").trim();
+  const affil = String(v?.affil ?? "").trim();
+  const phone = String(v?.phone ?? "").trim();
+  const route = String(v?.route ?? "");
+  const ok =
+    name.length >= 1 && name.length <= 30 &&
+    affil.length <= 30 &&
+    (phone === "" || /^01\d-\d{3,4}-\d{4}$/.test(phone)) &&
+    SHUTTLE_ROUTES.includes(route);
+  return ok ? { name, affil, phone, route } : null;
+};
+
 export async function POST(request: Request) {
   const b = await request.json().catch(() => null);
   const allowed =
@@ -161,6 +176,45 @@ export async function POST(request: Request) {
       const table = b.kind === "team" ? "japan_team_signups" : "japan_bus_signups";
       const { error } = await db.from(table).delete().eq("id", b.id);
       return error ? fail("ERROR") : NextResponse.json({ ok: true });
+    }
+
+    // 셔틀 탑승 명단 (/admin/shuttle). 체크 화면은 공개 뷰로 읽고, 명단 수정만 여기서.
+    case "shuttle": {
+      const { data } = await db.from("shuttle_passengers").select("*").order("name");
+      return NextResponse.json({ rows: data ?? [] });
+    }
+
+    case "shuttleAdd": {
+      const row = shuttleRow(b);
+      if (!row) return fail("INVALID");
+      const { data: last } = await db.from("shuttle_passengers").select("seq").order("seq", { ascending: false }).limit(1);
+      const { error } = await db.from("shuttle_passengers").insert({ seq: (last?.[0]?.seq ?? 0) + 1, ...row });
+      return error ? fail(error.code === "23505" ? "DUPLICATE" : "ERROR") : NextResponse.json({ ok: true });
+    }
+
+    case "shuttleDelete": {
+      const { error } = await db.from("shuttle_passengers").delete().eq("id", b.id);
+      return error ? fail("ERROR") : NextResponse.json({ ok: true });
+    }
+
+    case "shuttleRoute": {
+      if (!SHUTTLE_ROUTES.includes(String(b.route))) return fail("INVALID");
+      const { error } = await db.from("shuttle_passengers").update({ route: b.route }).eq("id", b.id);
+      return error ? fail("ERROR") : NextResponse.json({ ok: true });
+    }
+
+    // 명단 통째로 교체 (다음 행사). 탑승 체크는 모두 지워집니다
+    case "shuttleReplace": {
+      const rows = (Array.isArray(b.rows) ? b.rows : []).map(shuttleRow);
+      if (!rows.length || rows.some((r: unknown) => !r)) return fail("INVALID");
+      const names = rows.map((r: { name: string }) => r.name);
+      if (new Set(names).size !== names.length) return fail("DUPLICATE");
+      const { error: delError } = await db.from("shuttle_passengers").delete().gte("id", 0);
+      if (delError) return fail("ERROR");
+      const { error } = await db
+        .from("shuttle_passengers")
+        .insert(rows.map((r: object, i: number) => ({ seq: i + 1, ...r })));
+      return error ? fail("ERROR") : NextResponse.json({ ok: true, count: rows.length });
     }
 
     // 설문 삭제 (예약/응답도 함께 삭제됨)

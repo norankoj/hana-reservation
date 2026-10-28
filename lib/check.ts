@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { slotLabel, questionsOf } from "./form.ts";
 import { formatPhone } from "./phone.ts";
 import { chosung, matches } from "./hangul.ts";
+import { parseRoster } from "./shuttle.ts";
 import { unitPrice, lineError, addLine, total } from "./goods.ts";
 import { excelRows, fillOrderForm, readZip, unzipText } from "./xlsx.ts";
 import { readFileSync } from "node:fs";
@@ -32,6 +33,29 @@ assert.ok(matches("선애", "김선애")); // 글자로 치면 그대로
 assert.ok(matches("", "아무개")); // 빈 검색어는 전부
 assert.ok(matches("UCM", "김세은", "UCM")); // 소속도 검색 대상
 assert.ok(!matches("ㄱㅅㅇ", "UCM")); // 초성 검색이 영문 소속에 잘못 걸리지 않음
+
+// 셔틀 명단 붙여넣기: 머리글·번호 칸은 건너뛰고, 번호는 010-1234-5678 꼴로 고쳐 줍니다
+const pasted = parseRoster(
+  [
+    "번호\t이름\t소속\t연락처\t탑승여부", // 머리글
+    "1\t강순철\t3A01\t010-2256-2400\t왕복",
+    "2\t강지연\t3A10\t1055547490\t귀가만", // 하이픈 없이, 앞 0 빠짐
+    "3\t김선애\t3B14\t010-7646-3801\t가는 편만", // 다른 표기
+    "조은희,3C18,010-8848-2464,", // 쉼표 구분 + 탑승 비어 있음(왕복)
+    "여승훈\tUCM\t/\t왕복", // 번호 없음
+  ].join("\n"),
+);
+assert.equal(pasted.errors.length, 0);
+assert.equal(pasted.rows.length, 5);
+assert.deepEqual(pasted.rows[1], { name: "강지연", affil: "3A10", phone: "010-5554-7490", route: "귀가만" });
+assert.equal(pasted.rows[2].route, "출발만"); // 「가는 편만」 → 출발만
+assert.deepEqual(pasted.rows[3], { name: "조은희", affil: "3C18", phone: "010-8848-2464", route: "왕복" });
+assert.equal(pasted.rows[4].phone, ""); // 「/」 는 번호 없음으로
+// 알 수 없는 탑승과 이름 중복은 줄 번호와 함께 알려 줍니다
+const bad = parseRoster("김하나\t1A01\t010-1111-2222\t편도\n김하나\t1A01\t010-1111-2222\t왕복");
+assert.equal(bad.rows.length, 1);
+assert.equal(bad.errors.length, 1);
+assert.match(bad.errors[0], /김하나/);
 
 // 굿즈: 엑셀(상품표)과 같은 할인가, 세트/사이즈 검사, 엑셀 붙여넣기 줄
 assert.equal(unitPrice("후드집업 - 그레이"), 46800);
