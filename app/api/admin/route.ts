@@ -178,7 +178,7 @@ export async function POST(request: Request) {
       return error ? fail("ERROR") : NextResponse.json({ ok: true });
     }
 
-    // 크리스마스 마켓 스텝 (/admin/christmas)
+    // 크리스마스 마켓 스탭 (/admin/christmas)
     case "christmas": {
       const { data } = await db.from("christmas_signups").select("*").order("created_at");
       return NextResponse.json({ rows: data ?? [] });

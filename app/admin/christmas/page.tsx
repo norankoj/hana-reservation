@@ -13,7 +13,7 @@ const day = (s: string) => new Date(s).toLocaleDateString("ko-KR", { month: "num
 export default function ChristmasAdmin() {
   const [password, setPassword] = useState<string | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
-  const [role, setRole] = useState(""); // 스텝 종류로 거르기. "" 는 전체
+  const [role, setRole] = useState(""); // 스탭 종류로 거르기. "" 는 전체
 
   const load = async (pw: string) => {
     const r = await adminApi(pw, { action: "christmas" });
@@ -60,7 +60,7 @@ export default function ChristmasAdmin() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <form onSubmit={login} className="bg-white p-8 rounded-[20px] shadow-card-lg w-full max-w-sm space-y-4">
-          <h1 className="text-2xl font-bold text-center mb-2">크리스마스 마켓 스텝</h1>
+          <h1 className="text-2xl font-bold text-center mb-2">크리스마스 마켓 스탭</h1>
           <input name="password" type="password" placeholder="비밀번호" required className="w-full border-2 border-gray-200 rounded-xl p-3 outline-none focus:border-brand" />
           <button className="w-full bg-brand text-white font-bold py-3 rounded-xl hover:bg-brand-dark transition">로그인</button>
         </form>
@@ -72,13 +72,13 @@ export default function ChristmasAdmin() {
       <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-3 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto flex items-center gap-1">
           <Link href="/admin" aria-label="관리자" className="p-1 text-gray-500"><ChevronLeft size={22} /></Link>
-          <h1 className="text-lg md:text-xl font-bold">크리스마스 마켓 스텝 <span className="text-gray-500">{rows.length}명</span></h1>
+          <h1 className="text-lg md:text-xl font-bold">크리스마스 마켓 스탭 <span className="text-gray-500">{rows.length}명</span></h1>
           <button onClick={copyLink} className={`${btn} ml-auto`}><Link2 size={16} /> 신청 링크</button>
         </div>
       </header>
 
       <main className="max-w-5xl mx-auto p-4 md:p-8 space-y-4">
-        {/* 스텝별 인원. 누르면 그 스텝만 */}
+        {/* 스탭별 인원. 누르면 그 스탭만 */}
         <div className="flex flex-wrap gap-2">
           {[{ name: "" }, ...info.roles].map((r) => {
             const n = r.name ? rows.filter((x) => x.role === r.name).length : rows.length;
@@ -97,7 +97,7 @@ export default function ChristmasAdmin() {
         <div className="bg-white rounded-2xl shadow-card overflow-x-auto">
           <table className="w-full min-w-[640px] text-sm">
             <thead className="bg-gray-50 text-[13px] text-gray-500">
-              <tr>{["이름", "연락처", "셀", "스텝", "남기실 말", "신청일", ""].map((h) => <th key={h} className="px-3 py-2.5 text-left font-semibold">{h}</th>)}</tr>
+              <tr>{["이름", "연락처", "셀", "스탭", "남기실 말", "신청일", ""].map((h) => <th key={h} className="px-3 py-2.5 text-left font-semibold">{h}</th>)}</tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {shown.map((r) => (

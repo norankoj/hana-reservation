@@ -8,8 +8,8 @@ import { Check } from "lucide-react";
 import { info } from "./info";
 import { Photos } from "./Photos";
 
-// 크리스마스 마켓 스텝 모집. 작년 전단지 톤(성탄 빨강 + 크림 + 초록 이름표)을 그대로 씁니다.
-// 스텝 카드가 곧 신청서 체크박스입니다. 문구·사진은 ./info.ts, 명단은 /admin/christmas
+// 크리스마스 마켓 스탭 모집. 작년 전단지 톤(성탄 빨강 + 크림 + 초록 이름표)을 그대로 씁니다.
+// 스탭 카드가 곧 신청서 체크박스입니다. 문구·사진은 ./info.ts, 명단은 /admin/christmas
 const focus = "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#a3162a]";
 const field = "w-full border-2 border-[#3a1a14]/15 rounded-xl px-4 py-3.5 text-[17px] bg-white outline-none focus:border-[#a3162a] transition placeholder:text-[#3a1a14]/45";
 const pill = "inline-block rounded-full bg-[#2f5a34] px-3 py-0.5 text-[15px] font-bold text-[#fbefe0]";
@@ -32,7 +32,7 @@ export default function ChristmasPage() {
       role: String(f.get("role") ?? ""),
       memo: String(f.get("memo") ?? "").trim(),
     };
-    if (!row.role) return setError("현장스텝·코스튬 스텝 중 하나를 골라 주세요.");
+    if (!row.role) return setError("현장스탭·코스튬 스탭 중 하나를 골라 주세요.");
     setError("");
     setIsLoading(true);
     const { error } = await supabase.from("christmas_signups").insert(row);
@@ -100,7 +100,7 @@ export default function ChristmasPage() {
             ) : (
               <form onSubmit={submit} className="space-y-6">
                 <fieldset>
-                  <legend className="px-1 text-[22px] font-extrabold tracking-tight">스텝모집!</legend>
+                  <legend className="px-1 text-[22px] font-extrabold tracking-tight">스탭모집!</legend>
                   <p className="px-1 mt-1 text-[16px] font-semibold text-[#3a1a14]/70">하나만 골라 주세요.</p>
                   <div className="mt-3 space-y-3">
                     {info.roles.map((r) => (

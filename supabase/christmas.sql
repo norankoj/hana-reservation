@@ -1,9 +1,9 @@
 -- ============================================================
---  크리스마스 마켓 스텝 모집 (/christmas), 명단은 /admin/christmas
+--  크리스마스 마켓 스탭 모집 (/christmas), 명단은 /admin/christmas
 --  Supabase 대시보드 > SQL Editor 에 붙여넣고 Run 하세요. 여러 번 실행해도 안전합니다.
 -- ============================================================
 
--- 스텝 종류 이름은 app/christmas/info.ts 에서 고치므로 여기서는 개수만 검사
+-- 스탭 종류 이름은 app/christmas/info.ts 에서 고치므로 여기서는 개수만 검사
 create table if not exists public.christmas_signups (
   id          bigint generated always as identity primary key,
   name        text not null check (length(trim(name)) between 1 and 30),
