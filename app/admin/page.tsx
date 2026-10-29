@@ -5,7 +5,7 @@ import Link from "next/link";
 import { type Form, slotLabel, questionsOf } from "@/lib/form";
 import { adminApi, savedPassword, savePassword } from "@/lib/admin";
 import {
-  Clock, MapPin, Phone, LogOut, ChevronDown, Download, Settings, Plus, Link2, Lock, Unlock, ShoppingBag, Bus,
+  Clock, MapPin, Phone, LogOut, ChevronDown, Download, Settings, Plus, Link2, Lock, Unlock, ShoppingBag, Bus, Gift,
 } from "lucide-react";
 
 type Row = {
@@ -149,6 +149,7 @@ export default function Admin() {
           <div className="flex flex-wrap items-center gap-1">
             <Link href="/admin/goods" className={btn}><ShoppingBag size={16} /> 굿즈 주문</Link>
             <Link href="/admin/shuttle" className={btn}><Bus size={16} /> 셔틀 명단</Link>
+            <Link href="/admin/christmas" className={btn}><Gift size={16} /> 크리스마스 마켓 스텝</Link>
             <Link href="/admin/settings" className={btn}><Plus size={16} /> 새 설문</Link>
             {form && (
               <>

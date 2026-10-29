@@ -178,6 +178,17 @@ export async function POST(request: Request) {
       return error ? fail("ERROR") : NextResponse.json({ ok: true });
     }
 
+    // 크리스마스 마켓 스텝 (/admin/christmas)
+    case "christmas": {
+      const { data } = await db.from("christmas_signups").select("*").order("created_at");
+      return NextResponse.json({ rows: data ?? [] });
+    }
+
+    case "christmasDelete": {
+      const { error } = await db.from("christmas_signups").delete().eq("id", b.id);
+      return error ? fail("ERROR") : NextResponse.json({ ok: true });
+    }
+
     // 셔틀 탑승 명단 (/admin/shuttle). 체크 화면은 공개 뷰로 읽고, 명단 수정만 여기서.
     case "shuttle": {
       const { data } = await db.from("shuttle_passengers").select("*").order("name");
