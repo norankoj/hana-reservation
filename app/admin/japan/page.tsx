@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { adminApi, savedPassword, savePassword } from "@/lib/admin";
-import { ChevronLeft, Link2, Trash2 } from "lucide-react";
+import { ChevronLeft, Copy, Link2, Trash2 } from "lucide-react";
 
 type Bus = { id: number; name: string; phone: string; cell: string; route: string; flight: string; created_at: string };
 type Team = { id: number; kind: string; name: string; phone: string; cell: string; members: string; memo: string; created_at: string };
@@ -53,6 +53,19 @@ export default function JapanAdmin() {
     load(password);
   };
 
+  // 구글 시트·엑셀에 붙여넣으면 칸이 나뉘도록 탭으로 구분
+  const copyBus = async () => {
+    const tsv = [["이름", "연락처", "셀", "탑승", "항공", "신청일"], ...bus.map((r) => [r.name, r.phone, r.cell, r.route, r.flight, day(r.created_at)])]
+      .map((row) => row.map((v) => v.replace(/[\t\n]/g, " ")).join("\t"))
+      .join("\n");
+    try {
+      await navigator.clipboard.writeText(tsv);
+      alert(`버스 명단 ${bus.length}명을 복사했습니다.\n시트에 붙여넣어 주세요.`);
+    } catch {
+      alert("복사하지 못했습니다. 다시 시도해 주세요.");
+    }
+  };
+
   const copyLink = async (path: string) => {
     const url = `${location.origin}${path}`;
     try {
@@ -92,7 +105,10 @@ export default function JapanAdmin() {
         <section className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold">인천공항행 버스</h2>
-            <button onClick={() => copyLink("/japan/bus")} className={btn}><Link2 size={16} /> 신청 링크</button>
+            <div className="flex items-center gap-1">
+              <button onClick={copyBus} disabled={bus.length === 0} className={`${btn} disabled:opacity-40`}><Copy size={16} /> 명단 복사</button>
+              <button onClick={() => copyLink("/japan/bus")} className={btn}><Link2 size={16} /> 신청 링크</button>
+            </div>
           </div>
           <div className="grid grid-cols-3 gap-2 md:gap-3">
             {[
