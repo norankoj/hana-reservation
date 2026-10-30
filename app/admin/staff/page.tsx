@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { adminApi, savedPassword, savePassword } from "@/lib/admin";
+import { adminApi, downloadCsv, savedPassword, savePassword } from "@/lib/admin";
 import { ROLES } from "@/lib/staff";
-import { ChevronLeft, Link2, Trash2 } from "lucide-react";
+import { ChevronLeft, Download, Link2, Trash2 } from "lucide-react";
 
 type Signup = { id: number; name: string; cell: string; role: string; created_at: string };
 
@@ -69,9 +69,18 @@ export default function StaffAdmin() {
             <Link href="/admin" aria-label="관리자" className="p-1 text-gray-500"><ChevronLeft size={22} /></Link>
             <h1 className="text-lg md:text-xl font-bold">오이타 현장 STAFF 신청</h1>
           </div>
-          <button onClick={copyLink} className="flex items-center gap-1.5 text-sm font-bold px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100">
-            <Link2 size={16} /> 링크
-          </button>
+          <div className="flex items-center gap-1">
+            <button onClick={copyLink} className="flex items-center gap-1.5 text-sm font-bold px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100">
+              <Link2 size={16} /> 링크
+            </button>
+            <button
+              onClick={() => downloadCsv("오이타_스태프_신청", [["이름", "셀", "역할", "신청일시"], ...rows.map((s) => [s.name, s.cell, s.role, new Date(s.created_at).toLocaleString("ko-KR")])])}
+              disabled={rows.length === 0}
+              className="flex items-center gap-1.5 text-sm font-bold text-white bg-brand px-3 py-2 rounded-lg hover:bg-brand-dark disabled:bg-gray-300"
+            >
+              <Download size={16} /> 엑셀
+            </button>
+          </div>
         </div>
       </header>
 

@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { adminApi, savedPassword, savePassword } from "@/lib/admin";
-import { ChevronLeft, Copy, Link2, Trash2 } from "lucide-react";
+import { adminApi, downloadCsv, savedPassword, savePassword } from "@/lib/admin";
+import { ChevronLeft, Copy, Download, Link2, Trash2 } from "lucide-react";
 
 type Bus = { id: number; name: string; phone: string; cell: string; route: string; flight: string; created_at: string };
 type Team = { id: number; kind: string; name: string; phone: string; cell: string; members: string; memo: string; created_at: string };
@@ -108,6 +108,13 @@ export default function JapanAdmin() {
             <div className="flex items-center gap-1">
               <button onClick={copyBus} disabled={bus.length === 0} className={`${btn} disabled:opacity-40`}><Copy size={16} /> 명단 복사</button>
               <button onClick={() => copyLink("/japan/bus")} className={btn}><Link2 size={16} /> 신청 링크</button>
+              <button
+                onClick={() => downloadCsv("오이타_인천공항_버스_신청", [["이름", "연락처", "셀", "탑승", "항공", "신청일시"], ...bus.map((r) => [r.name, r.phone, r.cell, r.route, r.flight, new Date(r.created_at).toLocaleString("ko-KR")])])}
+                disabled={bus.length === 0}
+                className="flex items-center gap-1.5 text-sm font-bold text-white bg-brand px-3 py-2 rounded-lg hover:bg-brand-dark disabled:bg-gray-300"
+              >
+                <Download size={16} /> 엑셀
+              </button>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-2 md:gap-3">
