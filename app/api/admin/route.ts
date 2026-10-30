@@ -178,6 +178,13 @@ export async function POST(request: Request) {
       return error ? fail("ERROR") : NextResponse.json({ ok: true });
     }
 
+    // 탑승(왕복/가는 편만/오는 편만) 바꾸기. 값은 DB 체크 supabase/japan.sql 과 같게
+    case "japanBusRoute": {
+      if (!["왕복", "가는 편만", "오는 편만"].includes(String(b.route))) return fail("INVALID");
+      const { error } = await db.from("japan_bus_signups").update({ route: b.route }).eq("id", b.id);
+      return error ? fail("ERROR") : NextResponse.json({ ok: true });
+    }
+
     // 크리스마스 마켓 스탭 (/admin/christmas)
     case "christmas": {
       const { data } = await db.from("christmas_signups").select("*").order("created_at");

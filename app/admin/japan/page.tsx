@@ -8,6 +8,7 @@ import { ChevronLeft, Link2, Trash2 } from "lucide-react";
 type Bus = { id: number; name: string; phone: string; cell: string; route: string; flight: string; created_at: string };
 type Team = { id: number; kind: string; name: string; phone: string; cell: string; members: string; memo: string; created_at: string };
 
+const ROUTES = ["왕복", "가는 편만", "오는 편만"];
 const day = (s: string) => new Date(s).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" });
 
 export default function JapanAdmin() {
@@ -41,6 +42,14 @@ export default function JapanAdmin() {
     if (!password || !confirm(`${name}님의 신청을 삭제할까요?`)) return;
     const res = await adminApi(password, { action: "japanDelete", kind, id });
     if (res.error) alert("삭제하지 못했습니다.");
+    load(password);
+  };
+
+  const changeRoute = async (r: Bus, route: string) => {
+    if (!password) return;
+    setBus((rows) => rows.map((x) => (x.id === r.id ? { ...x, route } : x))); // 바로 반영
+    const res = await adminApi(password, { action: "japanBusRoute", id: r.id, route });
+    if (res.error) alert("바꾸지 못했습니다.");
     load(password);
   };
 
@@ -108,7 +117,14 @@ export default function JapanAdmin() {
                     <td className="px-3 py-2.5 font-bold whitespace-nowrap">{r.name}</td>
                     <td className="px-3 py-2.5 whitespace-nowrap"><a href={`tel:${r.phone}`} className="tabular-nums hover:text-brand">{r.phone}</a></td>
                     <td className="px-3 py-2.5 whitespace-nowrap">{r.cell}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{r.route}</td>
+                    <td className="px-3 py-1.5 whitespace-nowrap">
+                      <select
+                        aria-label={`${r.name}님 탑승`} value={r.route} onChange={(e) => changeRoute(r, e.target.value)}
+                        className="cursor-pointer rounded-lg border border-gray-200 bg-white px-2 py-1.5 font-semibold outline-none hover:border-gray-400 focus:border-brand"
+                      >
+                        {ROUTES.map((o) => <option key={o}>{o}</option>)}
+                      </select>
+                    </td>
                     <td className="px-3 py-2.5 whitespace-nowrap">{r.flight}</td>
                     <td className="px-3 py-2.5 text-gray-500 tabular-nums whitespace-nowrap">{day(r.created_at)}</td>
                     <td className="px-2 py-2.5"><button aria-label="신청 삭제" onClick={() => remove("bus", r.id, r.name)} className={trash}><Trash2 size={16} /></button></td>
