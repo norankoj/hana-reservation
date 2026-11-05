@@ -22,11 +22,6 @@ export const info = {
       desc: "식당 청소, 안내, 줄 세우기, 쓰레기 관리, 설거지, 준비, 음식 부스 도움 등 마켓 곳곳을 맡아요.",
       image: "game-booth.webp",
     },
-    {
-      name: "코스튬 스탭",
-      desc: "성탄 이야기 속 인물 옷을 입고 마켓 곳곳에서 손님을 맞아요.",
-      image: "costume.webp",
-    },
   ],
 
   // 작년 마켓 사진 (public/christmas/)

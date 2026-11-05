@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { adminApi, savedPassword, savePassword } from "@/lib/admin";
 import { ChevronLeft, Link2, Trash2 } from "lucide-react";
-import { info } from "@/app/christmas/info";
 
 type Row = { id: number; name: string; phone: string; cell: string; role: string; memo: string; created_at: string };
 
@@ -13,7 +12,7 @@ const day = (s: string) => new Date(s).toLocaleDateString("ko-KR", { month: "num
 export default function ChristmasAdmin() {
   const [password, setPassword] = useState<string | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
-  const [role, setRole] = useState(""); // 스탭 종류로 거르기. "" 는 전체
+  const [role, setRole] = useState(""); // 신청한 자리로 거르기. "" 는 전체
 
   const load = async (pw: string) => {
     const r = await adminApi(pw, { action: "christmas" });
@@ -43,8 +42,8 @@ export default function ChristmasAdmin() {
     load(password);
   };
 
-  const copyLink = async () => {
-    const url = `${location.origin}/christmas`;
+  const copyLink = async (path: string) => {
+    const url = `${location.origin}${path}`;
     try {
       await navigator.clipboard.writeText(url);
       alert(`링크를 복사했습니다.\n${url}`);
@@ -72,23 +71,24 @@ export default function ChristmasAdmin() {
       <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-3 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto flex items-center gap-1">
           <Link href="/admin" aria-label="관리자" className="p-1 text-gray-500"><ChevronLeft size={22} /></Link>
-          <h1 className="text-lg md:text-xl font-bold">크리스마스 마켓 스탭 <span className="text-gray-500">{rows.length}명</span></h1>
-          <button onClick={copyLink} className={`${btn} ml-auto`}><Link2 size={16} /> 신청 링크</button>
+          <h1 className="text-lg md:text-xl font-bold">크리스마스 마켓 스탭·배우 <span className="text-gray-500">{rows.length}명</span></h1>
+          <button onClick={() => copyLink("/christmas")} className={`${btn} ml-auto`}><Link2 size={16} /> 스탭 링크</button>
+          <button onClick={() => copyLink("/christmas-play")} className={btn}><Link2 size={16} /> 배우 링크</button>
         </div>
       </header>
 
       <main className="max-w-5xl mx-auto p-4 md:p-8 space-y-4">
-        {/* 스탭별 인원. 누르면 그 스탭만 */}
+        {/* 신청한 자리별 인원 (현장스탭, 배우: 마리아 ...). 누르면 그 자리만 */}
         <div className="flex flex-wrap gap-2">
-          {[{ name: "" }, ...info.roles].map((r) => {
-            const n = r.name ? rows.filter((x) => x.role === r.name).length : rows.length;
+          {["", ...new Set(rows.map((x) => x.role))].map((name) => {
+            const n = name ? rows.filter((x) => x.role === name).length : rows.length;
             return (
               <button
-                key={r.name}
-                onClick={() => setRole(r.name)}
-                className={`rounded-full px-3.5 py-2 text-sm font-bold transition ${role === r.name ? "bg-brand text-white" : "bg-white shadow-card text-gray-700 hover:bg-gray-100"}`}
+                key={name}
+                onClick={() => setRole(name)}
+                className={`rounded-full px-3.5 py-2 text-sm font-bold transition ${role === name ? "bg-brand text-white" : "bg-white shadow-card text-gray-700 hover:bg-gray-100"}`}
               >
-                {r.name || "전체"} <span className="tabular-nums opacity-70">{n}</span>
+                {name || "전체"} <span className="tabular-nums opacity-70">{n}</span>
               </button>
             );
           })}

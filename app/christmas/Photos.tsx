@@ -25,7 +25,7 @@ export function Photos() {
       <ul aria-label="작년 마켓 사진" className="grid grid-cols-2 gap-2 px-4">
         {info.photos.map((p, i) => (
           <li key={p.src} className={i === 0 ? "col-span-2" : ""}>
-            <button type="button" onClick={() => open(i)} aria-label={`${p.alt} 크게 보기`} className="block w-full cursor-zoom-in focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#a3162a]">
+            <button type="button" onClick={() => open(i)} aria-label={`${p.alt} 크게 보기`} className="block w-full cursor-zoom-in focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-xmas-red">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={`/christmas/${p.src}`} alt={p.alt} loading="lazy" className={`w-full object-cover ${i === 0 ? "aspect-[16/9]" : "aspect-square"}`} />
             </button>
@@ -33,7 +33,7 @@ export function Photos() {
         ))}
       </ul>
 
-      <dialog ref={dialog} aria-label="작년 마켓 사진" className="m-0 h-[100dvh] max-h-none w-screen max-w-none bg-[#140a08]/95 p-0 backdrop:bg-black/60">
+      <dialog ref={dialog} aria-label="작년 마켓 사진" className="m-0 h-[100dvh] max-h-none w-screen max-w-none bg-xmas-ink/95 p-0 backdrop:bg-black/60">
         <div ref={strip} className="flex h-full snap-x snap-mandatory overflow-x-auto [scrollbar-width:none]">
           {info.photos.map((p) => (
             // 사진 바깥(검은 부분)을 누르면 닫힘

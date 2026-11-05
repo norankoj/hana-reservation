@@ -26,6 +26,15 @@
   --color-gray-800: #282b3d;
   --color-gray-900: #191c2b;
 
+  /* 크리스마스 마켓 페이지(/christmas, /christmas-play). 작년 전단지 톤 */
+  --color-xmas-red: #a3162a; /* 버튼·강조·첫 화면 */
+  --color-xmas-ink: #3a1a14; /* 글씨 */
+  /* 바탕·버튼은 눈 흰색. 예전 크림색으로 되돌리려면 cream: #fbefe0, sand: #efdcc6 */
+  --color-xmas-cream: #faf9f6; /* 바탕, 신청하기 버튼, 빨강 위 글씨 */
+  --color-xmas-pine: #2f5a34; /* 초록 이름표 */
+  --color-xmas-gold: #f5c873; /* 영문 머리글, 점무늬 */
+  --color-xmas-sand: #e9e7e2; /* 페이지 바깥 (컴퓨터 화면에서만 보임) */
+
   --shadow-card: 0 6px 24px rgba(40, 45, 90, 0.06);
   --shadow-card-lg: 0 12px 40px rgba(40, 45, 90, 0.12);
   --shadow-brand: 0 8px 20px rgba(91, 108, 255, 0.35);
@@ -80,6 +89,24 @@ body {
   .animate-bob {
     animation: none;
   }
+}
+
+/* 배우 모집 페이지(/christmas-play) 첫 화면: 위에서 반짝이며 떨어지는 빛 */
+.sparkle {
+  box-shadow: 0 0 6px 2px rgb(245 200 115 / 0.7), 0 0 14px 4px rgb(245 200 115 / 0.3);
+  animation: sparkle-fall linear infinite both;
+}
+@keyframes sparkle-fall {
+  0% { transform: translateY(0) scale(0.6); opacity: 0; }
+  10% { opacity: 1; }
+  30% { opacity: 0.35; }
+  45% { opacity: 1; }
+  65% { opacity: 0.4; }
+  80% { opacity: 0.9; }
+  100% { transform: translateY(calc(100vh + 2rem)) scale(1); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sparkle { display: none; }
 }
 
 /* 누를 수 있는 버튼은 손 모양 커서 (Tailwind 4 는 기본이 화살표) */
