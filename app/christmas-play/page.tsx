@@ -37,7 +37,7 @@ export default function CastPage() {
                 // 배역을 아직 정하지 않았을 때: 제목만 두고 "배우: 배역 미정"으로 신청
                 <div>
                   <h2 className="px-1 text-[22px] font-extrabold tracking-tight">배우모집!</h2>
-                  <p className="px-1 mt-1 whitespace-pre-line text-[17px] font-semibold text-xmas-ink/70">{cast.intro}</p>
+                  <p className="px-1 mt-1 text-pretty text-[17px] font-semibold text-xmas-ink/70">{cast.intro}</p>
                   <input type="hidden" name="role" value="배역 미정" />
                 </div>
               ) : (
