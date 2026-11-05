@@ -143,7 +143,7 @@ export default function ChristmasPage() {
                     <span className="block text-[16px] font-bold">
                       남기실 말 <span className="text-[15px] font-semibold text-[#3a1a14]/60">(선택)</span>
                     </span>
-                    <textarea name="memo" maxLength={300} rows={3} placeholder="예: 오후 2시부터 가능해요" className={`${field} resize-none`} />
+                    <textarea name="memo" maxLength={300} rows={3} placeholder="예: 최선을 다하겠습니다!" className={`${field} resize-none`} />
                   </label>
 
                   {error && <p className="text-[16px] font-bold text-[#a3162a]" role="alert">{error}</p>}
