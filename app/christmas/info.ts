@@ -15,12 +15,10 @@ export const info = {
   ],
 
   // 스탭 종류. name 은 명단에 그대로 저장됩니다 (신청이 들어온 뒤에는 이름을 바꾸지 마세요)
-  // image 는 public/christmas/ 의 파일 이름
   roles: [
     {
       name: "현장스탭",
       desc: "식당 청소, 안내, 줄 세우기, 쓰레기 관리, 설거지, 준비, 음식 부스 도움 등 마켓 곳곳을 맡아요.",
-      image: "game-booth.webp",
     },
   ],
 
@@ -28,7 +26,7 @@ export const info = {
   photos: [
     { src: "kids-game.webp", alt: "병뚜껑 컬링을 하는 아이들" },
     { src: "food-stall.webp", alt: "디저트 부스에서 계산하는 모습" },
-    { src: "craft-booth.webp", alt: "크리스마스 키트 부스" },
+    { src: "package-shop.webp", alt: "메리네 패키지샵 부스 스탭들" },
     { src: "skewers.webp", alt: "숯불에 굽는 꼬치" },
     { src: "cup-stack.webp", alt: "컵 쌓기를 하는 아이" },
     { src: "kid-snack.webp", alt: "간식을 먹는 아이" },

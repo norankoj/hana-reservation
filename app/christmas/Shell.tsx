@@ -13,31 +13,27 @@ const LIGHTS = [
 export function Shell({
   hero,
   facts,
-  sparkle = false,
   contact = info,
   children,
 }: {
   hero: React.ReactNode;
   facts: { label: string; value: string }[];
-  sparkle?: boolean; // true 면 화면 위에서 아래까지 반짝이는 빛이 떨어짐
   contact?: { contactLabel: string; contactLink: string }; // 맨 아래 문의. 기본은 스탭 페이지 문의
   children: React.ReactNode;
 }) {
   return (
     <div className="min-h-[100dvh] bg-xmas-sand flex justify-center md:py-8 text-xmas-ink text-[17px] leading-relaxed break-keep">
-      {sparkle && (
-        // 화면에 고정된 층이라 스크롤해도 계속 위에서 아래로 떨어짐. 누르는 데는 방해 안 됨
-        // (움직임 줄이기 설정이면 globals.css 에서 숨김)
-        <div aria-hidden className="pointer-events-none fixed inset-y-0 left-1/2 z-20 w-full max-w-md -translate-x-1/2 overflow-hidden">
-          {LIGHTS.map(([left, size, delay, dur], i) => (
-            <span
-              key={i}
-              className="sparkle absolute -top-4 rounded-full bg-xmas-gold"
-              style={{ left: `${left}%`, width: size, height: size, animationDelay: `${delay}s`, animationDuration: `${dur}s` }}
-            />
-          ))}
-        </div>
-      )}
+      {/* 떨어지는 빛. 화면에 고정된 층이라 스크롤해도 계속 위에서 아래로 떨어짐. 누르는 데는 방해 안 됨
+          (움직임 줄이기 설정이면 globals.css 에서 숨김) */}
+      <div aria-hidden className="pointer-events-none fixed inset-y-0 left-1/2 z-20 w-full max-w-md -translate-x-1/2 overflow-hidden">
+        {LIGHTS.map(([left, size, delay, dur], i) => (
+          <span
+            key={i}
+            className="sparkle absolute -top-4 rounded-full bg-xmas-gold"
+            style={{ left: `${left}%`, width: size, height: size, animationDelay: `${delay}s`, animationDuration: `${dur}s` }}
+          />
+        ))}
+      </div>
 
       <main className="w-full max-w-md bg-xmas-cream md:rounded-[28px] md:shadow-[0_12px_40px_rgba(110,20,30,0.18)] overflow-hidden">
         {hero}

@@ -39,16 +39,9 @@ export default function ChristmasPage() {
           <section id="apply" className="scroll-mt-4 px-4">
             <ApplyForm emptyRole="">
               <div>
-                <h2 className="px-1 text-[22px] font-extrabold tracking-tight">스탭모집!</h2>
+                <h2 className="px-1 text-[22px] font-extrabold tracking-tight">{staff.name}모집!</h2>
+                <p className="px-1 mt-1 text-pretty text-[17px] font-semibold text-xmas-ink/75">{staff.desc}</p>
                 <input type="hidden" name="role" value={staff.name} />
-                <div className="mt-3 overflow-hidden rounded-2xl border-2 border-xmas-ink/10 bg-white">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={`/christmas/${staff.image}`} alt="" loading="lazy" className="block aspect-[16/9] w-full object-cover" />
-                  <div className="p-4">
-                    <p className="text-[22px] font-extrabold">{staff.name}</p>
-                    <p className="mt-0.5 text-[17px] text-xmas-ink/75">{staff.desc}</p>
-                  </div>
-                </div>
                 <Link href="/christmas-play" className={`mt-3 flex items-center gap-3 rounded-2xl bg-xmas-pine px-4 py-3.5 text-xmas-cream transition active:scale-[0.99] ${focus}`}>
                   <span className="min-w-0 flex-1">
                     <span className="block font-extrabold">연극 배우도 모집해요</span>

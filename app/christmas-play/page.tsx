@@ -17,7 +17,6 @@ export default function CastPage() {
   return (
     <Shell
       facts={[]}
-      sparkle
       contact={cast}
       hero={
         <Hero
@@ -25,7 +24,6 @@ export default function CastPage() {
           headline={cast.headline}
           lead={cast.lead}
           image="costume.webp"
-          dots={false}
           alt="작년 마켓, 성탄 이야기 의상을 입은 배우들"
           cta={ended ? undefined : "신청하기"}
         />
