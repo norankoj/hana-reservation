@@ -24,7 +24,7 @@ export function FormShell({ title, children }: { title: string; children: React.
     <div className="min-h-[100dvh] bg-[#e9dcc4] flex justify-center md:py-8 text-[#1f2a44] text-[17px] leading-relaxed break-keep">
       <main className="w-full max-w-md bg-[#f6eedd] md:rounded-[28px] md:shadow-card-lg overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/japan/og.jpg" alt="Promised Land Japan in Oita" width={1200} height={630} className="w-full h-auto" />
+        <img src="/japan/title.jpg" alt="Promised Land Japan in Oita" width={1200} height={630} className="w-full h-auto" />
         <div className="px-5 pt-6 pb-12 space-y-5">
           <h1 className="text-center text-[26px] font-extrabold tracking-tight">{title}</h1>
           {children}
