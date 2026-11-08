@@ -19,6 +19,7 @@ export default function JapanTeamPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [done, setDone] = useState<{ name: string; kind: string } | null>(null);
   const ended = today() > info.formDeadline;
+  const lastDay = today() === info.formDeadline;
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -47,7 +48,7 @@ export default function JapanTeamPage() {
       <section className="bg-white rounded-2xl border-2 border-[#1f2a44]/10 p-5 space-y-2 text-center">
         <p className="text-[17px] font-bold text-balance">개별 항공으로 가시는 분은 팀마다 담당자를 정해 함께 가는 분들을 알려 주세요.</p>
         <p className="text-[16px] text-[#1f2a44]/75 text-balance">{info.leaderSolo}</p>
-        <p className="font-extrabold">제출 기한 · <span className="text-[#a8201a]">{info.leaderDeadline}</span>까지</p>
+        <p className="font-extrabold">제출 기한 · <span className="text-[#a8201a]">{lastDay ? "오늘까지 제출!" : `${info.leaderDeadline}까지`}</span></p>
       </section>
 
       {done ? (

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
+import { CalendarDays, Plane, BusFront, MapPin, Heart, Sparkles, SquareCheck, NotebookText } from "lucide-react";
 import { Black_Han_Sans } from "next/font/google";
 import { info } from "./info";
 import { today } from "@/lib/form";
@@ -56,6 +58,32 @@ function Title({ eyebrow, children }: { eyebrow: string; children: React.ReactNo
   );
 }
 
+// 버튼 위에 떠 있는 말풍선 ("오늘까지 신청!"). 감싼 요소에 relative 필요
+function Bubble({ children, light }: { children: React.ReactNode; light?: boolean }) {
+  const color = light ? "bg-[#f6eedd] text-[#a8201a]" : "bg-[#1f2a44] text-white";
+  return (
+    <span className="pointer-events-none absolute inset-x-0 bottom-full mb-2.5 flex justify-center">
+      <span className={`relative whitespace-nowrap rounded-full px-3.5 py-1 text-[15px] font-extrabold shadow-sm motion-safe:animate-bob ${color}`}>
+        {children}
+        <span aria-hidden className={`absolute left-1/2 top-full -ml-1.5 -mt-1.5 size-3 rotate-45 ${color}`} />
+      </span>
+    </span>
+  );
+}
+
+// 위쪽 바로가기 (내용이 길어서). [이름, 주소]
+const JUMPS = [
+  ["일정", "#schedule", CalendarDays],
+  ["참가 방법", "#join", Plane],
+  ["버스", "#bus", BusFront],
+  ["도착 후", "#arrival", MapPin],
+  ["스태프", "#staff", Heart],
+  ["기도모임", "#prayer", Sparkles],
+  ["확인할 것", "#check", SquareCheck],
+] as const;
+const tile = `flex flex-col items-center gap-1.5 rounded-2xl px-1 pt-3 pb-2.5 text-[15px] font-bold leading-tight active:scale-[0.97] transition ${focus}`;
+const tileIcon = "grid size-11 place-items-center rounded-xl";
+
 const Bullets = ({ items }: { items: string[] }) => (
   <ul className="space-y-2 list-disc pl-5 marker:text-[#a8201a]">
     {items.map((t) => <li key={t}><Rich text={t} /></li>)}
@@ -86,6 +114,7 @@ export default function JapanPage() {
   const dday = now === null ? null : Math.round((Date.parse(info.startDate) - Date.parse(now)) / 86400000);
   const next = now === null ? undefined : info.timeline.find((t) => t.until >= now);
   const closed = now !== null && now > info.formDeadline; // 버스·팀 담당자 신청 마감
+  const lastDay = now === info.formDeadline; // 마감 당일엔 "오늘까지" 강조
 
   return (
     <div className="min-h-[100dvh] bg-[#e9dcc4] flex justify-center md:py-8 text-[#1f2a44] text-[17px] leading-relaxed break-keep">
@@ -100,16 +129,20 @@ export default function JapanPage() {
             Japan in Oita
           </h1>
           <p className="relative mt-4 text-[18px] font-bold">{info.dates}</p>
-          <div className="relative mt-6 grid grid-cols-2 gap-2">
+          <div className={`relative grid grid-cols-2 gap-2 ${lastDay ? "mt-12" : "mt-6"}`}>
             <a href={info.staffLink} className={btnRed}>스태프 신청</a>
-            <a href="#bus" className={btnLine}>버스 신청</a>
+            <span className="relative">
+              {lastDay && <Bubble light>오늘까지 신청!</Bubble>}
+              <a href="#bus" className={`${btnLine} w-full`}>버스 신청</a>
+            </span>
             {contactHref && <a href={contactHref} className={`${btnLine} col-span-2`}>문의</a>}
           </div>
         </header>
 
         {/* 흐르는 띠: D-day 안내 (집회 기간·이후엔 문구만 바뀜) */}
         <div className="bg-[#e9dcc4] text-[#1f2a44] border-b border-[#1f2a44]/10 py-3 overflow-hidden whitespace-nowrap">
-          <p className="inline-block animate-marquee text-[16px] font-extrabold">
+          {/* 움직이는 글씨가 번져 보이지 않게 따로 그리기 (backface-hidden) */}
+          <p className="inline-block animate-marquee text-[16px] font-extrabold backface-hidden will-change-transform">
             {[0, 1, 2, 3].map((i) => (
               <span key={i} aria-hidden={i > 0} className="inline-flex items-center gap-3 pr-3">
                 {dday !== null && dday > 0 && (
@@ -133,6 +166,20 @@ export default function JapanPage() {
         </div>
 
         <div className="px-4 pt-5 space-y-5">
+          {/* 바로가기: 아이콘 타일 4×2. 마지막 칸(남색)은 11/7 모임 내용 */}
+          <nav aria-label="바로가기" className="grid grid-cols-4 gap-2">
+            {JUMPS.map(([label, href, Icon]) => (
+              <a key={href} href={href} className={`${tile} border-2 border-[#1f2a44]/[0.08] bg-white hover:border-[#1f2a44]/30`}>
+                <span className={`${tileIcon} bg-[#f6eedd]`}><Icon size={24} strokeWidth={2} className="text-[#a8201a]" /></span>
+                {label}
+              </a>
+            ))}
+            <Link href="/japan/notes/1107" className={`${tile} border-2 border-[#1f2a44] bg-[#1f2a44] text-white hover:bg-[#2c3a5c]`}>
+              <span className={`${tileIcon} bg-[#2c3a5c]`}><NotebookText size={24} strokeWidth={2} className="text-[#f0c9a8]" /></span>
+              모임 내용
+            </Link>
+          </nav>
+
           {/* 소개 */}
           <section className="reveal px-1 pt-4 space-y-4">
             <h2 className="text-[30px] leading-[1.2] font-extrabold tracking-tight">
@@ -157,13 +204,19 @@ export default function JapanPage() {
                   </p>
                   <p className={`font-extrabold ${t.main ? "text-[20px]" : "text-[18px]"}`}>{t.title}</p>
                   {t.desc && <p className="text-[#1f2a44]/75">{t.desc}</p>}
+                  {"notes" in t && (
+                    // 원래 버튼 모양. 누르는 동안 남색으로 바뀜
+                    <a href={`/japan/notes/${t.notes}`} className={`mt-2 inline-flex min-h-11 items-center rounded-xl border-2 border-[#1f2a44]/20 bg-white px-4 text-[16px] font-bold hover:border-[#1f2a44]/50 hover:bg-[#f6eedd] active:border-[#1f2a44] active:bg-[#1f2a44] active:text-white transition ${focus}`}>
+                      모임 내용 보기 →
+                    </a>
+                  )}
                 </li>
               ))}
             </ol>
           </section>
 
           {/* 참가 방법: 나는 어디에 해당? */}
-          <section className={card}>
+          <section id="join" className={card}>
             <Title eyebrow="HOW TO JOIN">참가 방법</Title>
             <p className="font-bold">나는 어디에 해당하나요?</p>
             <div className="grid grid-cols-2 gap-2" role="group" aria-label="참가 방식 선택">
@@ -211,7 +264,7 @@ export default function JapanPage() {
                   {/* 제출 기한만 가장 굵게, 나머지 안내는 같은 굵기 */}
                   <p className="font-medium">{info.leaderText}</p>
                   <p className="font-medium">{info.leaderSolo}</p>
-                  <p className="font-extrabold">제출 기한 · <span className="text-[#a8201a]">{info.leaderDeadline}</span>까지</p>
+                  <p className="font-extrabold">제출 기한 · <span className="text-[#a8201a]">{lastDay ? "오늘까지 제출!" : `${info.leaderDeadline}까지`}</span></p>
                   {closed ? (
                     <p className="flex items-center justify-center min-h-14 rounded-xl bg-[#1f2a44]/10 font-bold text-[#1f2a44]/75">제출이 마감되었습니다</p>
                   ) : (
@@ -245,14 +298,44 @@ export default function JapanPage() {
             <dl className="divide-y divide-[#1f2a44]/10">
               <Row label="차비">{info.busFare ? info.busFare : <Muted>편도/왕복 추후 공지</Muted>}</Row>
               <Row label="신청 마감">
-                <span className="font-bold"><b className="font-extrabold text-[#a8201a]">{info.busDeadline}</b>까지</span>
+                {lastDay ? (
+                  <span className="font-extrabold text-[#a8201a]">오늘 {info.busDeadline}까지 신청!</span>
+                ) : (
+                  <span className="font-bold"><b className="font-extrabold text-[#a8201a]">{info.busDeadline}</b>까지</span>
+                )}
               </Row>
             </dl>
             {closed ? (
               <p className="flex items-center justify-center min-h-14 rounded-xl bg-[#1f2a44]/10 font-bold text-[#1f2a44]/75">신청이 마감되었습니다</p>
             ) : (
-              <a href={info.busLink} className={`${btnRed} w-full`}>버스 신청</a>
+              <div className="flex flex-col items-center">
+                {/* 마감 당일: 버튼 위 말풍선 */}
+                {lastDay && (
+                  <span className="relative mb-3 rounded-full bg-[#1f2a44] px-4 py-1.5 text-[16px] font-extrabold text-white motion-safe:animate-bob">
+                    오늘까지 신청!
+                    <span aria-hidden className="absolute left-1/2 top-full -ml-1.5 -mt-1.5 size-3 rotate-45 bg-[#1f2a44]" />
+                  </span>
+                )}
+                <a href={info.busLink} className={`${btnRed} w-full`}>버스 신청</a>
+              </div>
             )}
+          </section>
+
+          {/* 도착 후 일정 (목·금) */}
+          <section id="arrival" className={card}>
+            <Title eyebrow="IN OITA">도착 후 일정</Title>
+            {info.arrival.map((d) => (
+              <div key={d.day} className="rounded-xl bg-[#f6eedd] p-4 space-y-3">
+                <p className="flex items-center gap-2">
+                  <span className="rounded-lg bg-[#1f2a44] px-2.5 py-1 text-[16px] font-extrabold text-white">{d.day}</span>
+                  <span className="text-[19px] font-extrabold">{d.title}</span>
+                </p>
+                <ol className="space-y-1.5 list-decimal pl-6 marker:font-bold marker:text-[#a8201a]">
+                  {d.items.map((t) => <li key={t}>{t}</li>)}
+                </ol>
+                <BusNotes items={d.notes} className="border-t border-[#1f2a44]/10 pt-3" />
+              </div>
+            ))}
           </section>
 
           {/* 스태프 모집 */}
@@ -272,7 +355,10 @@ export default function JapanPage() {
 
           {/* 준비 기도모임: 다음 일정 · 날짜 카드 */}
           <section id="prayer" className="reveal scroll-mt-4 pt-3 space-y-4">
-            <div className="px-1"><Title eyebrow="PRAYER">준비 기도모임</Title></div>
+            <div className="px-1">
+              <Title eyebrow="PRAYER">준비 기도모임</Title>
+              <p className="mt-1 text-[18px] font-extrabold text-[#a8201a]">{info.prayerMust}</p>
+            </div>
             {/* 다음 일정 카드: 다음 일정이 기도모임(poster 있음)일 때만 */}
             {next?.poster && (
               <a href="#schedule" className={`flex overflow-hidden rounded-2xl bg-white border-2 border-[#1f2a44]/10 active:scale-[0.99] transition ${focus}`}>
@@ -304,11 +390,13 @@ export default function JapanPage() {
           </section>
 
           {/* 확인해두면 좋을 것 */}
-          <section className={card}>
+          <section id="check" className={card}>
             <Title eyebrow="CHECK">확인해두면 좋을 것</Title>
             <dl className="divide-y divide-[#1f2a44]/10">
               <Row label="여권"><Rich text={info.passport} /></Row>
               <Row label="여행자 보험"><Rich text={info.insurance} /></Row>
+              <Row label="입국 준비"><Rich text={info.visitJapan} /></Row>
+              <Row label="eSIM"><Rich text={info.esim} /></Row>
               <Row label="준비물">{info.supplies}</Row>
             </dl>
           </section>
@@ -349,7 +437,10 @@ export default function JapanPage() {
       <nav className="md:hidden fixed inset-x-0 bottom-0 z-20 bg-[#f6eedd]/95 backdrop-blur border-t border-[#1f2a44]/10 px-4 pt-3 pb-safe">
         <div className="grid grid-cols-2 gap-2 pb-3">
           <a href={info.staffLink} className={btnRed}>스태프 신청</a>
-          <a href="#bus" className={btnLine}>버스 신청</a>
+          <span className="relative">
+            {lastDay && <Bubble>오늘까지 신청!</Bubble>}
+            <a href="#bus" className={`${btnLine} w-full`}>버스 신청</a>
+          </span>
         </div>
       </nav>
     </div>

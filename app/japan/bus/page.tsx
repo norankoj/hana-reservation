@@ -16,6 +16,7 @@ export default function JapanBusPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [done, setDone] = useState<{ name: string; route: string } | null>(null);
   const ended = today() > info.formDeadline;
+  const lastDay = today() === info.formDeadline;
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -118,7 +119,7 @@ export default function JapanBusPage() {
           <button type="submit" disabled={isLoading} className={submitBtn}>
             {isLoading ? "신청 중입니다..." : "신청하기"}
           </button>
-          <p className="text-center text-[16px] font-bold"><b className="font-extrabold text-[#a8201a]">{info.busDeadline}</b>까지 신청받아요</p>
+          <p className="text-center text-[16px] font-bold">{lastDay ? <b className="font-extrabold text-[#a8201a]">오늘까지 신청받아요!</b> : <><b className="font-extrabold text-[#a8201a]">{info.busDeadline}</b>까지 신청받아요</>}</p>
         </form>
       )}
     </FormShell>
