@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { CalendarDays, Plane, BusFront, MapPin, Heart, Sparkles, SquareCheck, NotebookText } from "lucide-react";
+import { CalendarDays, Plane, BusFront, MapPin, Heart, Sparkles, SquareCheck, NotebookText, Download, Lock, Flashlight, Camera } from "lucide-react";
 import { info } from "./info";
 import { today } from "@/lib/form";
 import { BusNotes } from "./FormShell";
@@ -91,6 +91,8 @@ const Bullets = ({ items }: { items: string[] }) => (
 export default function JapanPage() {
   const [now, setNow] = useState<string | null>(null);
   const [who, setWho] = useState<"group" | "solo" | null>(null);
+  const [wp, setWp] = useState(0); // 잠금화면: 고른 그림
+  const wall = info.wallpapers[wp];
 
   useEffect(() => {
     // D-day·다음 일정은 접속한 날 기준 (빌드한 날이 아니라)
@@ -396,6 +398,50 @@ export default function JapanPage() {
               <Row label="eSIM"><Rich text={info.esim} /></Row>
               <Row label="준비물">{info.supplies}</Row>
             </dl>
+          </section>
+
+          {/* 잠금화면 배경 내려받기 */}
+          <section id="wallpaper" className={card}>
+            <Title eyebrow="WALLPAPER">잠금화면</Title>
+            <p className="text-[18px] leading-[1.8]"><Rich text={info.wallpaperText} /></p>
+            {/* 큰 미리보기: 아래 작은 그림을 누르면 바뀜. 위에 시계·날짜를 얹어 진짜 잠금화면처럼 (집회 날 11/20 11:20) */}
+            <div className="relative mx-auto w-3/4 overflow-hidden rounded-[28px] border-[6px] border-[#1f2a44] shadow-lg">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                key={wall.file} src={wall.file} alt={`${wall.name} 잠금화면 미리보기`} width={1125} height={2000} loading="lazy"
+                className="block aspect-[9/16] w-full object-cover animate-fade-in"
+              />
+              <div aria-hidden className="pointer-events-none absolute inset-0 flex flex-col items-center text-white [text-shadow:0_1px_6px_rgba(0,0,0,0.35)]">
+                <Lock size={13} strokeWidth={2.5} className="mt-2" />
+                <p className="mt-0.5 text-[13px] font-semibold leading-tight">{info.lockDate}</p>
+                <p className="text-[56px] font-semibold leading-none tracking-tight">{info.lockTime}</p>
+                <div className="mt-auto mb-3 flex w-full items-center justify-between px-5">
+                  <span className="grid size-9 place-items-center rounded-full bg-black/35 backdrop-blur-sm"><Flashlight size={16} /></span>
+                  <span className="grid size-9 place-items-center rounded-full bg-black/35 backdrop-blur-sm"><Camera size={16} /></span>
+                </div>
+                <span className="mb-1.5 h-1 w-1/3 rounded-full bg-white/80" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-2" role="group" aria-label="잠금화면 고르기">
+              {info.wallpapers.map((w, i) => (
+                <button
+                  key={w.file} type="button" aria-pressed={wp === i} aria-label={`${w.name} 잠금화면 보기`} onClick={() => setWp(i)}
+                  className={`rounded-xl border-[3px] p-0.5 transition ${focus} ${wp === i ? "border-[#a8201a]" : "border-transparent opacity-70 hover:opacity-100"}`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={w.thumb} alt="" width={360} height={640} loading="lazy" className="aspect-[9/16] w-full rounded-lg object-cover" />
+                </button>
+              ))}
+            </div>
+            {/* 고른 그림 저장. 버튼 색은 그림 바탕색 */}
+            <a
+              href={wall.file} download={`잠금화면_JOSHUA_GENERATION_${wall.name}.jpg`} style={{ backgroundColor: wall.color }}
+              className={`flex min-h-14 w-full items-center justify-center gap-2 rounded-xl text-[17px] font-bold text-white hover:opacity-90 active:scale-[0.98] transition ${focus}`}
+            >
+              <Download size={22} strokeWidth={2.4} aria-hidden />
+              저장하기
+            </a>
+            <p className="text-[15px] leading-relaxed text-[#1f2a44]/70">{info.wallpaperHelp}</p>
           </section>
 
           {/* 문의·긴급 연락처: 하나라도 채우면 나타남 */}

@@ -85,6 +85,17 @@ export const info = {
   leaderDeadline: "11/8(주일)",
   leaderDuty: "담당자는 팀원의 위치와 이동 상황을 파악하고, 긴급 상황이나 안전 문제에 신속히 대응할 수 있도록 미리 대비해 주세요.",
 
+  // 잠금화면 (public/japan/wallpaper-*.jpg 원본을 저장, 화면엔 작은 그림). color 는 저장 버튼 색 (그림 바탕색)
+  wallpaperText: "휴대폰 **잠금화면**으로 쓸 수 있는 집회 배경화면이에요. 아래 그림을 눌러 고른 뒤 **저장하기**를 눌러 주세요.",
+  wallpaperHelp: "저장이 안 되면 위 큰 그림을 길게 눌러 '이미지 저장'을 해 주세요.",
+  lockDate: "11월 20일 금요일", // 미리보기 위 날짜·시계 (집회 첫날)
+  lockTime: "11:20",
+  wallpapers: [
+    { name: "빨강", file: "/japan/wallpaper-red.jpg", thumb: "/japan/wallpaper-red-thumb.webp", color: "#7a0d10" },
+    { name: "검정", file: "/japan/wallpaper-black.jpg", thumb: "/japan/wallpaper-black-thumb.webp", color: "#1c1c1c" },
+    { name: "남색", file: "/japan/wallpaper-navy.jpg", thumb: "/japan/wallpaper-navy-thumb.webp", color: "#1b2b4f" },
+  ],
+
   // 확인해두면 좋을 것
   passport: "**유효기간**을 꼭 확인해 주세요.",
   insurance: "**개별 가입**을 권장합니다.",
