@@ -1,13 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Noto_Serif_KR } from "next/font/google";
 import { supabase } from "@/lib/supabase";
 import { formatPhone } from "@/lib/phone";
 import { today } from "@/lib/form";
 
 // 결혼식 버스 신청. 굿즈·면담과 다르게 청첩장 느낌(아이보리 + 명조)으로.
-const serif = Noto_Serif_KR({ weight: ["400", "600"], preload: false });
 
 const DEADLINE = "2026-11-01"; // DB 정책 supabase/bus.sql 과 같게
 const LETTER = "https://salondeletter.com/w/x9dy9cwsmy";
@@ -66,7 +64,7 @@ export default function BusPage() {
           <img src="/bus/forever.webp" alt="석의찬, 이수현 웨딩 사진" className="w-full aspect-[619/966] object-cover" />
           <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#fbf8f3] to-transparent" />
         </div>
-        <header className={`${serif.className} -mt-10 relative text-center px-6`}>
+        <header className={`font-myeongjo -mt-10 relative text-center px-6`}>
           <p className="text-[13px] tracking-[0.3em] text-[#b08d6e]">WEDDING BUS</p>
           <h1 className="mt-3 text-[26px] font-semibold tracking-tight">
             석의찬 <span className="text-[#c9a48a] font-normal">&</span> 이수현
@@ -88,7 +86,7 @@ export default function BusPage() {
               <div key={label} className="flex items-center gap-4 py-4">
                 <span className="w-14 shrink-0 text-[13px] font-bold text-[#b08d6e]">{label}</span>
                 <div>
-                  <p className={`${serif.className} text-[22px] font-semibold tabular-nums`}>{time}</p>
+                  <p className={`font-myeongjo text-[22px] font-semibold tabular-nums`}>{time}</p>
                   <p className="text-[14px] text-[#6b625a]">{from} 출발 → {to}</p>
                 </div>
               </div>
@@ -97,7 +95,7 @@ export default function BusPage() {
 
           {done ? (
             <section className="bg-white rounded-2xl border border-[#ece4d8] p-6 text-center animate-fade-in">
-              <p className={`${serif.className} text-[22px] font-semibold`}>신청되었어요</p>
+              <p className={`font-myeongjo text-[22px] font-semibold`}>신청되었어요</p>
               <p className="mt-3 text-[15px] leading-relaxed text-[#6b625a]">
                 {done.name}님 · {done.route}
                 <br />
@@ -114,7 +112,7 @@ export default function BusPage() {
           ) : (
             <form onSubmit={submit} className="bg-white rounded-2xl border border-[#ece4d8] p-5 space-y-5">
               <div className="flex items-start justify-between gap-2">
-                <h2 className={`${serif.className} text-xl font-semibold`}>버스 탑승 신청</h2>
+                <h2 className={`font-myeongjo text-xl font-semibold`}>버스 탑승 신청</h2>
                 {/* 4자리 남았을 때부터 알림 */}
                 <div className="space-y-0.5 pt-1">
                   {left &&

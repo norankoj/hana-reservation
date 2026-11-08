@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Black_Han_Sans } from "next/font/google";
 import { notes } from "../../notes";
 import { Bold } from "../../FormShell";
 
 // 준비 기도모임 내용 (/japan/notes/1107). 내용은 ../../notes.ts 에서 고칩니다.
 // 어르신도 읽기 쉽게: 큰 글씨·넓은 줄 간격, 점 목록 대신 짧은 문단, 상자는 최소로.
-const display = Black_Han_Sans({ weight: "400", preload: false });
 
 export const dynamicParams = false;
 export const generateStaticParams = () => Object.keys(notes).map((date) => ({ date }));
@@ -45,7 +43,7 @@ export default async function NotesPage({ params }: Props) {
             ← 집회 안내
           </Link>
           <p className="relative mt-4 text-[15px] tracking-[0.25em] font-bold text-[#f0c9a8]">✦ {n.date} ✦</p>
-          <h1 className={`${display.className} relative mt-1 text-[34px] leading-[1.2]`}>{n.title}</h1>
+          <h1 className={`font-poster relative mt-1 text-[34px] leading-[1.2]`}>{n.title}</h1>
           <p className="relative mt-3 text-[17px] font-semibold leading-relaxed text-[#f6eedd]/90">{n.intro}</p>
         </header>
 
@@ -55,7 +53,7 @@ export default async function NotesPage({ params }: Props) {
             {n.sections.map((s, i) => (
               <li key={s.heading}>
                 <a href={`#s${i + 1}`} className="flex min-h-14 items-center gap-3 px-4 py-2 font-bold leading-snug hover:bg-[#efe3cb] first:rounded-t-2xl">
-                  <span className={`${display.className} text-[22px] text-[#a8201a]`}>{num(i)}</span>
+                  <span className={`font-poster text-[22px] text-[#a8201a]`}>{num(i)}</span>
                   {s.heading}
                 </a>
               </li>
@@ -68,7 +66,7 @@ export default async function NotesPage({ params }: Props) {
             <section key={s.heading} id={`s${i + 1}`} className="scroll-mt-4 space-y-6">
               <div className="flex items-end justify-between gap-3">
                 <h2 className="leading-tight">
-                  <span className={`${display.className} block text-[44px] leading-none text-[#a8201a]`}>{num(i)}</span>
+                  <span className={`font-poster block text-[44px] leading-none text-[#a8201a]`}>{num(i)}</span>
                   <span className="mt-2 block text-[26px] font-extrabold tracking-tight text-balance">{s.heading}</span>
                 </h2>
                 {/* 제목 옆 스티커 (살짝 기울여서, 움직이지 않음) */}

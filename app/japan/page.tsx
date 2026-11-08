@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { CalendarDays, Plane, BusFront, MapPin, Heart, Sparkles, SquareCheck, NotebookText } from "lucide-react";
-import { Black_Han_Sans } from "next/font/google";
 import { info } from "./info";
 import { today } from "@/lib/form";
 import { BusNotes } from "./FormShell";
@@ -11,8 +10,6 @@ import { BusNotes } from "./FormShell";
 // 일본 집회 참가 안내. /staff 포스터 톤(크림 바탕 + 빨강·남색)으로.
 // 문구·날짜·링크는 전부 ./info.ts 에서 고칩니다.
 // 모서리: 카드 rounded-2xl, 버튼 rounded-xl
-// D-day·다음 일정 카드 숫자와 제목만 포스터처럼 굵은 글꼴
-const display = Black_Han_Sans({ weight: "400", preload: false });
 
 const focus = "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#1f2a44]";
 const btnRed = `flex items-center justify-center min-h-14 px-5 rounded-xl bg-[#a8201a] hover:bg-[#8c1a15] text-white text-[17px] font-bold active:scale-[0.98] transition ${focus}`;
@@ -147,14 +144,14 @@ export default function JapanPage() {
               <span key={i} aria-hidden={i > 0} className="inline-flex items-center gap-3 pr-3">
                 {dday !== null && dday > 0 && (
                   <>
-                    <span className={`${display.className} text-[22px] leading-none text-[#a8201a]`}>D-{dday}</span>
+                    <span className={`font-poster text-[22px] leading-none text-[#a8201a]`}>D-{dday}</span>
                     <span>11월 20일 집회까지 · 기도로 준비하는 {dday}일</span>
                     <span className="text-[#a8201a]">✦</span>
                   </>
                 )}
                 {dday !== null && dday <= 0 && now! <= info.endDate && (
                   <>
-                    <span className={`${display.className} text-[22px] leading-none text-[#a8201a]`}>집회 기간입니다</span>
+                    <span className={`font-poster text-[22px] leading-none text-[#a8201a]`}>집회 기간입니다</span>
                     <span className="text-[#a8201a]">✦</span>
                   </>
                 )}
@@ -368,7 +365,7 @@ export default function JapanPage() {
                 )}
                 <span className="flex flex-col justify-center gap-1 p-4">
                   <span className="self-start rounded-full bg-[#a8201a] px-3 py-0.5 text-[14px] font-bold text-white">다음 일정</span>
-                  <span className={`${display.className} text-[26px] leading-tight`}>{next.title}</span>
+                  <span className={`font-poster text-[26px] leading-tight`}>{next.title}</span>
                   <span className="text-[18px] font-extrabold">{next.when}</span>
                   {next.sub && <span className="text-[16px] text-[#1f2a44]/70">{next.sub}</span>}
                 </span>
@@ -420,7 +417,7 @@ export default function JapanPage() {
         <footer className="reveal relative mt-10 overflow-hidden bg-[#1f2a44] text-[#f6eedd] px-6 pt-12 pb-32 md:pb-14 text-center">
           <div className="pointer-events-none absolute -left-16 -bottom-16 size-48 rounded-full bg-[#a8201a] motion-safe:animate-bob" />
           <p className="relative text-[14px] tracking-[0.3em] font-bold text-[#f0c9a8]">✦ OITA PROMISE LAND ✦</p>
-          <p className={`${display.className} relative mt-5 text-[30px] leading-[1.4]`}>
+          <p className={`font-poster relative mt-5 text-[30px] leading-[1.4]`}>
             {info.closing.split(", ").map((l, i, a) => (
               <span key={l} className="block text-balance">{l}{i < a.length - 1 ? "," : ""}</span>
             ))}

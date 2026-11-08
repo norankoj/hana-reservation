@@ -114,6 +114,14 @@ button:not(:disabled) {
   cursor: pointer;
 }
 
+/* 포스터 글꼴·명조 (app/layout.tsx 에서 불러옴) */
+@utility font-poster {
+  font-family: "Black Han Sans", var(--font-sans);
+}
+@utility font-myeongjo {
+  font-family: "Noto Serif KR", serif;
+}
+
 @utility pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }
