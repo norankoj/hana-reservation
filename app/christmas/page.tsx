@@ -10,7 +10,7 @@ import { Hero } from "./Hero";
 import { Shell } from "./Shell";
 
 // 크리스마스 마켓 스탭 모집. 작년 전단지 톤(성탄 빨강 + 크림 + 초록 이름표)을 그대로 씁니다.
-// 색은 globals.css 의 xmas-* 토큰. 문구·사진은 ./info.ts, 명단은 /admin/christmas. 연극 배우는 /christmas-play
+// 색은 globals.css 의 xmas-* 토큰. 문구·사진은 ./info.ts, 명단은 /admin/christmas. 코스튬 스탭은 /christmas-play
 
 export default function ChristmasPage() {
   const ended = today() > info.formDeadline;
@@ -44,8 +44,8 @@ export default function ChristmasPage() {
                 <input type="hidden" name="role" value={staff.name} />
                 <Link href="/christmas-play" className={`mt-3 flex items-center gap-3 rounded-2xl bg-xmas-pine px-4 py-3.5 text-xmas-cream transition active:scale-[0.99] ${focus}`}>
                   <span className="min-w-0 flex-1">
-                    <span className="block font-extrabold">연극 배우도 모집해요</span>
-                    <span className="block text-[15px] text-xmas-cream/80">마켓에서 올릴 성탄 연극, 배우 신청은 여기에서</span>
+                    <span className="block font-extrabold">코스튬 스탭도 모집해요</span>
+                    <span className="block text-[15px] text-xmas-cream/80">성탄 이야기 속 의상을 입고 함께해요</span>
                   </span>
                   <ChevronRight size={22} className="shrink-0" />
                 </Link>

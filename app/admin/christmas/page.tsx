@@ -71,14 +71,14 @@ export default function ChristmasAdmin() {
       <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-3 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto flex items-center gap-1">
           <Link href="/admin" aria-label="관리자" className="p-1 text-gray-500"><ChevronLeft size={22} /></Link>
-          <h1 className="text-lg md:text-xl font-bold">크리스마스 마켓 스탭·배우 <span className="text-gray-500">{rows.length}명</span></h1>
+          <h1 className="text-lg md:text-xl font-bold">크리스마스 마켓 스탭 <span className="text-gray-500">{rows.length}명</span></h1>
           <button onClick={() => copyLink("/christmas")} className={`${btn} ml-auto`}><Link2 size={16} /> 스탭 링크</button>
-          <button onClick={() => copyLink("/christmas-play")} className={btn}><Link2 size={16} /> 배우 링크</button>
+          <button onClick={() => copyLink("/christmas-play")} className={btn}><Link2 size={16} /> 코스튬 링크</button>
         </div>
       </header>
 
       <main className="max-w-5xl mx-auto p-4 md:p-8 space-y-4">
-        {/* 신청한 자리별 인원 (현장스탭, 배우: 마리아 ...). 누르면 그 자리만 */}
+        {/* 신청한 자리별 인원 (현장스탭, 코스튬 스탭 ...). 누르면 그 자리만 */}
         <div className="flex flex-wrap gap-2">
           {["", ...new Set(rows.map((x) => x.role))].map((name) => {
             const n = name ? rows.filter((x) => x.role === name).length : rows.length;

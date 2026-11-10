@@ -6,8 +6,8 @@ import { formatPhone } from "@/lib/phone";
 import { today } from "@/lib/form";
 import { info } from "./info";
 
-// 스탭(/christmas)·배우(/christmas-play) 신청서 공통. 고르는 칸(name="role")은 children 으로 받습니다.
-// 둘 다 christmas_signups 에 저장, 배우는 role 앞에 rolePrefix("배우: ")를 붙여 명단에서 구분
+// 현장스탭(/christmas)·코스튬 스탭(/christmas-play) 신청서 공통. 고르는 칸(name="role")은 children 으로 받습니다.
+// 둘 다 christmas_signups 에 저장, role 로 구분 (rolePrefix 를 주면 앞에 붙임)
 export const focus = "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-xmas-red";
 const field = "w-full border-2 border-xmas-ink/15 rounded-xl px-4 py-3.5 text-[17px] bg-white outline-none focus:border-xmas-red transition placeholder:text-xmas-ink/45";
 

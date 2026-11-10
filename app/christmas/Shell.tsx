@@ -8,7 +8,7 @@ const LIGHTS = [
   [84, 3, 1.4, 10], [91, 5, 2.2, 12.5], [96, 4, 4.8, 11.5], [10, 3, 5.3, 9], [50, 4, 5.9, 12],
 ] as const;
 
-// 스탭(/christmas)·배우(/christmas-play) 페이지 공통 틀:
+// 현장스탭(/christmas)·코스튬 스탭(/christmas-play) 페이지 공통 틀:
 // 바깥 모래색 배경 + 가운데 크림 카드, 첫 화면(hero) 아래 안내 칸, 본문, 맨 아래 문의
 export function Shell({
   hero,

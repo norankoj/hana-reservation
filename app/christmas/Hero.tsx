@@ -1,7 +1,7 @@
 import { Sparkles } from "lucide-react";
 import { focus } from "./ApplyForm";
 
-// 스탭·배우 페이지 공통 첫 화면. 작년 사진을 화면 가득 깔고, 아래로 갈수록 성탄 빨강으로 덮어
+// 현장스탭·코스튬 스탭 페이지 공통 첫 화면. 작년 사진을 화면 가득 깔고, 아래로 갈수록 성탄 빨강으로 덮어
 // 글씨가 읽히게 합니다.
 export function Hero({
   eyebrow,

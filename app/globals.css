@@ -91,7 +91,7 @@ body {
   }
 }
 
-/* 배우 모집 페이지(/christmas-play) 첫 화면: 위에서 반짝이며 떨어지는 빛 */
+/* 크리스마스 페이지: 위에서 반짝이며 떨어지는 빛 (Shell 의 sparkle) */
 .sparkle {
   box-shadow: 0 0 6px 2px rgb(245 200 115 / 0.7), 0 0 14px 4px rgb(245 200 115 / 0.3);
   animation: sparkle-fall linear infinite both;
