@@ -203,7 +203,7 @@ export default function JapanPage() {
                   const short = (a: string) => { const x = airport(a); return `${x.name.replace("국제공항", "")}(${x.code})`; };
                   return (
                     <Row key={f.flight} label={f.label}>
-                      <Cell main={`${f.date.slice(5)} ${f.flight} · ${f.time}`} sub={`${short(f.from)} → ${short(f.to)}`} />
+                      <Cell main={`${f.date.slice(5)} ${f.flight}`} sub={`${short(f.from)} ${f.time} → ${short(f.to)} ${f.arrive}`} />
                     </Row>
                   );
                 })}

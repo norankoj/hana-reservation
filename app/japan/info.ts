@@ -31,8 +31,8 @@ export const info = {
 
   // 단체 항공편 (출국 안내·비짓재팬 안내에 같이 쓰임)
   flights: [
-    { label: "출국", date: "2026.11.19(목)", flight: "ZE647", time: "12:25 이륙", from: "인천국제공항(ICN)", to: "후쿠오카국제공항(FUK)" },
-    { label: "귀국", date: "2026.11.23(월)", flight: "ZE648", time: "15:20 이륙", from: "후쿠오카국제공항(FUK)", to: "인천국제공항(ICN)" },
+    { label: "출국", date: "2026.11.19(목)", flight: "ZE647", time: "12:25", arrive: "14:00", from: "인천국제공항(ICN)", to: "후쿠오카국제공항(FUK)" },
+    { label: "귀국", date: "2026.11.23(월)", flight: "ZE648", time: "15:20", arrive: "16:30", from: "후쿠오카국제공항(FUK)", to: "인천국제공항(ICN)" },
   ],
 
   // 출국 안내: 단체 버스 집합, 수하물, 조 편성
