@@ -211,7 +211,8 @@ export default function JapanPage() {
                 <Row label="현지 이동"><Cell main={info.localMove[0]} sub={info.localMove[1]} /></Row>
                 <Row label="개별 항공"><Cell main={info.soloMove[0]} sub={info.soloMove[1]} /></Row>
                 <Row label="수하물">
-                  <Cell main={info.luggage[0]} sub={info.luggage[1]} />
+                  <Cell main={info.luggage[0]} />
+                  <span className="mt-0.5 block text-[14px] font-semibold text-[#a8201a]">{info.luggage[1]}</span>
                   <a href={info.luggageLink} target="_blank" rel="noopener" className="mt-1.5 inline-flex min-h-9 items-center text-[15px] font-bold underline underline-offset-4">이스타항공 수하물 규정 ↗</a>
                 </Row>
                 <Row label="일정">
