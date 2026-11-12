@@ -29,6 +29,7 @@ export default function CostumePage() {
         <ApplyForm deadline={costume.formDeadline} deadlineLabel={costume.deadlineLabel} emptyRole="">
           <div>
             <h2 className="px-1 text-[22px] font-extrabold tracking-tight">코스튬 스탭 모집!</h2>
+            <p className="px-1 mt-1 text-pretty text-[17px] font-semibold text-xmas-ink/70">{costume.intro}</p>
             <input type="hidden" name="role" value={costume.role} />
           </div>
         </ApplyForm>
