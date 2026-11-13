@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { adminApi, savedPassword, savePassword } from "@/lib/admin";
-import { ChevronLeft, Link2, Trash2 } from "lucide-react";
+import { adminApi, downloadCsv, savedPassword, savePassword } from "@/lib/admin";
+import { ChevronLeft, Download, Link2, Trash2 } from "lucide-react";
 
 type Row = { id: number; name: string; phone: string; cell: string; role: string; memo: string; created_at: string };
 
@@ -74,6 +74,13 @@ export default function ChristmasAdmin() {
           <h1 className="text-lg md:text-xl font-bold">크리스마스 마켓 스탭 <span className="text-gray-500">{rows.length}명</span></h1>
           <button onClick={() => copyLink("/christmas")} className={`${btn} ml-auto`}><Link2 size={16} /> 스탭 링크</button>
           <button onClick={() => copyLink("/christmas-play")} className={btn}><Link2 size={16} /> 코스튬 링크</button>
+          {/* 지금 보고 있는 목록(거른 자리)만 받음 */}
+          <button
+            onClick={() => downloadCsv(`크리스마스_스탭_${role || "전체"}`, [["이름", "연락처", "셀", "자리", "남기실 말", "신청일시"], ...shown.map((r) => [r.name, r.phone, r.cell, r.role, r.memo, new Date(r.created_at).toLocaleString("ko-KR")])])}
+            className={btn}
+          >
+            <Download size={16} /> 엑셀
+          </button>
         </div>
       </header>
 
