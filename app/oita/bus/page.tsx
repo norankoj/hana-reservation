@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/lib/supabase";
 import { matches } from "@/lib/hangul";
 import { Check, Search } from "lucide-react";
 
@@ -9,21 +10,21 @@ import { Check, Search } from "lucide-react";
 //  3호차: 나머지 Beppu Tower + 스탭숙소 + 개별숙소 (남는 자리)
 //  4호차: J-HOPPERS + 개별숙소 UCM 3명 (남는 자리)
 // 사람을 옮기려면 이름을 다른 호차 배열로 옮기면 됩니다. "이름:메모" 로 쓰면 이름 옆에 메모가 붙습니다.
-// ponytail: 체크는 이 기기(브라우저)에만 저장됩니다. 담당자 한 명이 한 폰으로 체크하는 용도.
-//           여러 명이 같이 보며 체크해야 하면 /shuttle 처럼 Supabase 표로 옮기세요.
+// 체크는 Supabase 표 oita_bus_checks 에 저장돼 담당자 모두가 같이 봅니다 (supabase/oita-bus.sql).
+// 사람을 다른 호차로 옮기면 그 사람의 기존 체크는 풀립니다 (key 가 "호차/이름").
 const BUSES = {
   "1호차": {
     to: "오이타 순복음교회 (Beppu Tower 숙소)",
     names: [
       "권성민", "김남현", "김세록:스탭", "김수아", "김하언", "명세진", "박윤서", "박준영", "반열",
-      "신주호", "양휘", "염승빈", "이동빈", "이민형:스탭", "이서준", "이예준", "이정민:스탭", "이지우",
+      "신주호", "양휘", "염승빈", "이동빈", "이민형:스탭", "이서준", "이예준", "이지우", "정상현",
     ],
   },
   "3호차": {
     to: "Beppu Tower",
     names: [
       // Beppu Tower
-      "정다솔:하행만", "정상민:하행만", "정상현", "정순영", "정순종", "정영재", "정현우", "주동규",
+      "정다솔:하행만", "정상민:하행만", "이정민:스탭", "정순영", "정순종", "정영재", "정현우", "주동규",
       "최윤재", "황재현", "신상철:사역자",
       // 스탭숙소
       "박희주:사역자", "이원근:스탭", "이요한:스탭", "안진환:스탭", "김태환:사역자", "최재훈:상행만",
@@ -47,25 +48,42 @@ const BUSES = {
 } as const;
 type Bus = keyof typeof BUSES;
 
-const KEY = "oita-bus-checked";
+const hhmm = (iso: string) =>
+  new Date(iso).toLocaleTimeString("ko-KR", { hour12: false, hour: "2-digit", minute: "2-digit" });
 
 export default function OitaBusPage() {
   const [bus, setBus] = useState<Bus>("1호차");
-  const [checked, setChecked] = useState<Record<string, boolean>>({});
+  const [checked, setChecked] = useState<Record<string, string>>({}); // "호차/이름" → 체크 시각
   const [q, setQ] = useState("");
+  const [state, setState] = useState<"loading" | "ok" | "failed">("loading");
 
-  // 새로고침해도 체크가 남도록 (시크릿 창 등에서 막히면 그냥 메모리만)
-  useEffect(() => {
-    try {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setChecked(JSON.parse(localStorage.getItem(KEY) || "{}"));
-    } catch {}
+  const load = useCallback(async () => {
+    const { data, error } = await supabase.from("oita_bus_checks").select("key, at");
+    if (error) return setState("failed");
+    setChecked(Object.fromEntries((data ?? []).map((r) => [r.key, r.at])));
+    setState("ok");
   }, []);
-  const save = (next: Record<string, boolean>) => {
-    setChecked(next);
-    try {
-      localStorage.setItem(KEY, JSON.stringify(next));
-    } catch {}
+
+  // 첫 로드 + 5초마다. 다른 담당자가 체크한 것도 따라옵니다.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    load();
+    const t = setInterval(load, 5000);
+    return () => clearInterval(t);
+  }, [load]);
+
+  // 누르면 바로 반영하고(기다리지 않게) 저장. 저장은 DB 함수 oita_bus_check 로만.
+  const toggle = async (id: string, name: string) => {
+    const on = !checked[id];
+    setChecked((c) => {
+      const n = { ...c };
+      if (on) n[id] = new Date().toISOString();
+      else delete n[id];
+      return n;
+    });
+    const { data, error } = await supabase.rpc("oita_bus_check", { p_key: id, p_on: on });
+    if (error || (on && !data)) alert(`${name}님 저장에 실패했습니다.\n인터넷 연결을 확인하고 다시 눌러 주세요.`);
+    load();
   };
 
   const people = BUSES[bus].names.map((s) => {
@@ -73,9 +91,11 @@ export default function OitaBusPage() {
     return { name, note, id: `${bus}/${name}` };
   });
   const list = people.filter((p) => matches(q, p.name, p.note));
-  const reset = () => {
-    if (!confirm(`${bus} 체크를 모두 지울까요?`)) return;
-    save(Object.fromEntries(Object.entries(checked).filter(([k]) => !k.startsWith(`${bus}/`))));
+  const reset = async () => {
+    if (!confirm(`${bus} 체크를 모두 지울까요?\n다른 담당자 화면에서도 같이 지워집니다.`)) return;
+    const { error } = await supabase.rpc("oita_bus_reset", { p_bus: bus });
+    if (error) alert("초기화에 실패했습니다. 다시 눌러 주세요.");
+    load();
   };
 
   return (
@@ -131,7 +151,7 @@ export default function OitaBusPage() {
             return (
               <li key={p.id}>
                 <button
-                  onClick={() => save({ ...checked, [p.id]: !on })}
+                  onClick={() => toggle(p.id, p.name)}
                   aria-pressed={on}
                   className={`w-full rounded-[20px] flex items-center gap-3 px-3.5 py-3 text-left transition-colors active:scale-[0.99] ${on ? "bg-brand-soft" : "bg-white shadow-card"}`}
                 >
@@ -142,7 +162,7 @@ export default function OitaBusPage() {
                   {p.note && (
                     <span className="text-[12px] font-bold text-gray-500 bg-gray-100 rounded-full px-2 py-0.5">{p.note}</span>
                   )}
-                  <span className={`ml-auto text-[14px] font-bold ${on ? "text-brand" : "text-gray-300"}`}>{on ? "탑승" : "미탑승"}</span>
+                  <span className={`ml-auto text-[14px] font-bold ${on ? "text-brand" : "text-gray-300"}`}>{on ? `탑승 ${hhmm(checked[p.id])}` : "미탑승"}</span>
                 </button>
               </li>
             );
@@ -151,7 +171,9 @@ export default function OitaBusPage() {
             <li className="rounded-[20px] bg-white shadow-card text-center py-16 font-bold text-gray-400">해당하는 분이 없습니다.</li>
           )}
         </ul>
-        <p className="text-center text-[13px] text-gray-400 pt-1">체크는 이 폰에만 저장됩니다</p>
+        <p className="text-center text-[13px] text-gray-400 pt-1">
+          {state === "failed" ? "체크 현황을 불러오지 못했습니다" : "5초마다 자동으로 새로 고쳐집니다 · 담당자 모두 같은 화면"}
+        </p>
       </main>
     </div>
   );
